@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Support Our gambling adiction!!!! We lost our house but we gotta keep gamlbing!</title>
+  <title>Support Our Gambling Addiction</title>
   <style>
     body {
       margin: 0;
@@ -22,18 +22,40 @@
       background: rgba(0,0,0,0.5);
       padding: 20px;
       border-radius: 10px;
+      max-width: 600px;
     }
     a {
       color: #00aaff;
       font-weight: bold;
     }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: #635bff;
+      color: white;
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
   <div class="box">
-    <h1>Support Our gambling adiction!!!! We lost our house but we gotta keep gambling!</h1>
+    <h1>Support Our Gambling Addiction</h1>
     <p>If you’d like to support what we do, you can donate here:</p>
+
+    <!-- PayPal link -->
     <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
+
+    <!-- Stripe button -->
+    <button id="stripeButton">Donate with Stripe (£4)</button>
   </div>
+
+  <script>
+    document.getElementById("stripeButton").addEventListener("click", function () {
+      window.location.href = "https://buy.stripe.com/7sY9AM4rS8tjbTce1ma3u00";
+    });
+  </script>
 </body>
 </html>
