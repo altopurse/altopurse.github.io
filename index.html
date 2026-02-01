@@ -129,6 +129,23 @@ stripe-pricing-table {
       <button id="stripeButton">CLICK HERE!!! Help us repair the car and gamble!! Now on Apple Pay!</button>
     </div>
 
+    <!-- MUSIC BUTTON -->
+<button id="musicButton">Play CHIEF Theme Song 🎵</button>
+
+<!-- Hidden audio player -->
+<audio id="themeSong">
+  <source src="CHIEF.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  document.getElementById("musicButton").addEventListener("click", function () {
+    const audio = document.getElementById("themeSong");
+    audio.volume = 1.0;
+    audio.play();
+  });
+</script>
+
+
     <!-- Stripe Pricing Table -->
 
       <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
