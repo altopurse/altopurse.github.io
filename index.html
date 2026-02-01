@@ -83,6 +83,16 @@
     .top-right   { top: 10px; right: 10px; }
     .bottom-left { bottom: 10px; left: 10px; }
     .bottom-right{ bottom: 10px; right: 10px; }
+
+
+    .content-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
   </style>
   <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3PNGGERWJP"></script>
@@ -102,21 +112,31 @@
     <img src="background-replacer-result (1).png" alt="">
   </div>
 
-  <!-- Donation box -->
-  <div class="box">
-    <h1>Support Our Gambling Addiction!!!!</h1>
-    <p>If you'd like to support what we do, you can donate here:</p>
+  <!-- WRAPPER TO STACK BOX + PRICING TABLE -->
+  <div class="content-wrapper">
 
-    <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
+    <!-- Donation box -->
+    <div class="box">
+      <h1>Support Our Gambling Addiction!!!!</h1>
+      <p>If you'd like to support what we do, you can donate here:</p>
 
-    <button id="stripeButton">Donate with Apple Pay (1£/£5)</button>
+      <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
+
+      <button id="stripeButton">Donate with Apple Pay (1£/£5)</button>
+    </div>
+
+    <!-- Stripe Pricing Table -->
+    <div class="stripe-wrapper">
+      <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+      <stripe-pricing-table
+        pricing-table-id="prctbl_1Svr1I2OnLwitBLF3fgru95i"
+        publishable-key="pk_live_51Svows2OnLwitBLFUaPJ6lh9z3VCP7Bjgr0Jo7SQN0pNOhhK4uvwouqDJJTrQ63Vu9WqrzqOscin9tywc8sCN39I00tMQ2GBpw">
+      </stripe-pricing-table>
+    </div>
+
   </div>
-  <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-<stripe-pricing-table pricing-table-id="prctbl_1Svr1I2OnLwitBLF3fgru95i"
-publishable-key="pk_live_51Svows2OnLwitBLFUaPJ6lh9z3VCP7Bjgr0Jo7SQN0pNOhhK4uvwouqDJJTrQ63Vu9WqrzqOscin9tywc8sCN39I00tMQ2GBpw">
-</stripe-pricing-table>
 
-  <!-- SLOT MACHINE GIFS (added exactly as requested) -->
+  <!-- SLOT MACHINE GIFS -->
   <img src="slot-machine-pixel.gif" class="corner top-left">
   <img src="slot-machine-pixel.gif" class="corner top-right">
   <img src="slot-machine-pixel.gif" class="corner bottom-left">
@@ -129,4 +149,5 @@ publishable-key="pk_live_51Svows2OnLwitBLFUaPJ6lh9z3VCP7Bjgr0Jo7SQN0pNOhhK4uvwou
   </script>
 
 </body>
+
 </html>
