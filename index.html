@@ -343,16 +343,6 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-</script>
-
-<script>
-  const openLoginButton = document.getElementById("openLoginButton");
-  const loginBox = document.getElementById("loginBox");
-
-  openLoginButton.addEventListener("click", () => {
-    loginBox.style.display = "block";
-  });
-</script>
 
   
 <div id="authError" style="
@@ -427,6 +417,14 @@ auth.onAuthStateChanged(user => {
   <button onclick="logout()">Logout</button>
 </div>
 
+<script>
+  const openLoginButton = document.getElementById("openLoginButton");
+  const loginBox = document.getElementById("loginBox");
+
+  openLoginButton.addEventListener("click", () => {
+    loginBox.style.display = "block";
+  });
+</script>
 
 
 
