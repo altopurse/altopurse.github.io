@@ -96,6 +96,24 @@ stripe-pricing-table {
   margin-top: 75px;
 }
 
+    .screen-shake {
+  animation: shake 2s ease;
+}
+
+    @keyframes shake {
+  0% { transform: translate(0, 0); }
+  10% { transform: translate(-10px, -10px); }
+  20% { transform: translate(10px, -10px); }
+  30% { transform: translate(-10px, 10px); }
+  40% { transform: translate(10px, 10px); }
+  50% { transform: translate(-10px, -10px); }
+  60% { transform: translate(10px, -10px); }
+  70% { transform: translate(-10px, 10px); }
+  80% { transform: translate(10px, 10px); }
+  90% { transform: translate(-10px, -10px); }
+  100% { transform: translate(0, 0); }
+}
+
 
   </style>
   <!-- Google tag (gtag.js) -->
@@ -139,14 +157,24 @@ stripe-pricing-table {
 </audio>
 
 <script>
-  document.getElementById("musicButton").addEventListener("click", function () {
-    const audio = document.getElementById("themeSong");
+  const musicButton = document.getElementById("musicButton");
+  const audio = document.getElementById("themeSong");
 
-    audio.currentTime = 13; // jump to 4 seconds
+  musicButton.addEventListener("click", function () {
+    audio.currentTime = 13;
     audio.volume = 1.0;
     audio.play();
+
+    // Shake whole screen
+    document.body.classList.add("screen-shake");
+
+    // Remove shake class after 2 seconds
+    setTimeout(() => {
+      document.body.classList.remove("screen-shake");
+    }, 2000);
   });
 </script>
+
 
 
 
