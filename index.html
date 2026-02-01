@@ -2,19 +2,24 @@
 <html lang="en">
 <head>
   <title>Support Our Gambling Addiction</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      background-image: url('background-replacer-result (1).png'); /* new pool party image */
+      height: 100%;
+    }
+    body {
+      background-image: url('background-replacer-result (1).png');
       background-size: cover;
-      background-position: center;
-      height: 100vh;
+      background-position: center center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
       display: flex;
       justify-content: center;
       align-items: center;
-      color: white;
       font-family: Arial, sans-serif;
+      color: white;
       text-shadow: 2px 2px 5px black;
       text-align: center;
     }
@@ -22,7 +27,8 @@
       background: rgba(0,0,0,0.5);
       padding: 20px;
       border-radius: 10px;
-      max-width: 600px;
+      max-width: 90%;
+      box-sizing: border-box;
     }
     a {
       color: #00aaff;
@@ -42,14 +48,12 @@
 </head>
 <body>
   <div class="box">
-    <h1>Support Our Gambling Addiction</h1>
+    <h1>Support Our Gambling Addiction!!!!</h1>
     <p>If you’d like to support what we do, you can donate here:</p>
 
-    <!-- PayPal link -->
     <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
 
-    <!-- Stripe button -->
-    <button id="stripeButton">Donate with Stripe (£1-£5)</button>
+    <button id="stripeButton">Donate with Apple Pay (£5)</button>
   </div>
 
   <script>
