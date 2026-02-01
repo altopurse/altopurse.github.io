@@ -297,12 +297,19 @@ stripe-pricing-table {
 <!-- SIGNUP -->
   
 <script>
+  function showError(msg) {
+    const box = document.getElementById("authError");
+    box.textContent = msg;
+    box.style.display = "block";
+    setTimeout(() => box.style.display = "none", 4000);
+  }
+
   function signup() {
     const email = document.getElementById("email").value;
     const pass = document.getElementById("password").value;
 
     auth.createUserWithEmailAndPassword(email, pass)
-      .catch(err => alert(err.message));
+      .catch(err => showError(err.message));
   }
 
   function login() {
@@ -310,25 +317,43 @@ stripe-pricing-table {
     const pass = document.getElementById("password").value;
 
     auth.signInWithEmailAndPassword(email, pass)
-      .catch(err => alert(err.message));
+      .catch(err => showError(err.message));
   }
 
-  function logout() {
-    auth.signOut();
-  }
-
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById("loginBox").style.display = "none";
-      document.getElementById("userBox").style.display = "block";
-      document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
-    } else {
-      document.getElementById("loginBox").style.display = "block";
-      document.getElementById("userBox").style.display = "none";
-    }
-  });
+function logout() {
+  auth.signOut();
+}
 </script>
 
+<script>
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("userBox").style.display = "block";
+    document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+  } else {
+    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("userBox").style.display = "none";
+  }
+});
+</script>
+
+
+<div id="authError" style="
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(255,0,0,0.7);
+  padding: 10px 15px;
+  border-radius: 8px;
+  color: white;
+  display: none;
+  z-index: 999999;
+"></div>
+
+
+
+ 
   
 <!-- LOGIN BOX -->
 <div id="loginBox" style="
