@@ -160,6 +160,23 @@ stripe-pricing-table {
 <!-- MUSIC BUTTON -->
 <button id="musicButton">Click here to hear a banger 🎶</button>
 
+<div id="funnyPopup"
+     style="
+       position: fixed;
+       top: 20px;
+       left: 50%;
+       transform: translateX(-50%) rotate(-3deg);
+       background: rgba(0,0,0,0.8);
+       color: white;
+       padding: 12px 20px;
+       border-radius: 8px;
+       font-size: 20px;
+       display: none;
+       z-index: 9999;
+     ">
+</div>
+
+
 <!-- Hidden audio player -->
 <audio id="themeSong">
   <source src="CHIEF.mp3" type="audio/mpeg">
@@ -217,6 +234,109 @@ stripe-pricing-table {
     });
   </script>
 
+<script>
+  const popup = document.getElementById("funnyPopup");
+
+  const messages = [
+    "Your credit score just dropped.",
+    "Your car insurance premium increased.",
+    "Vegas called. They want their money back.",
+    "Your bank is concerned.",
+    "You just unlocked a new debt tier.",
+    "Your wallet is crying.",
+    "Financial mistake detected.",
+    "Gambling XP +10 (no rewards).",
+
+    "Your bank just sighed loudly.",
+    "Your debit card is trembling.",
+    "Your accountant just fainted.",
+    "Your wallet filed for divorce.",
+    "Your savings entered witness protection.",
+    "Your credit card is typing 'pls stop.'",
+    "Your overdraft limit is sweating.",
+    "Your financial advisor rage-quit.",
+    "Your bank flagged you as 'high-risk clown.'",
+    "Your money just evaporated.",
+    "Your future self is disappointed.",
+    "Your past self regrets everything.",
+    "Your credit score is leaking.",
+    "Your bank app closed itself.",
+    "Your loan officer whispered 'not again.'",
+    "Your coins are escaping.",
+    "Your cash is in hiding.",
+    "Your budget is crying in the corner.",
+    "Your paycheck left the chat.",
+    "Your rent is judging you.",
+    "Your landlord sensed this.",
+    "Your car insurance premium doubled.",
+    "Your car just sighed.",
+    "Your tires deflated emotionally.",
+    "Your engine light turned itself on.",
+    "Your bank added you to a watchlist.",
+    "Your credit card is smoking.",
+    "Your wallet is filing a complaint.",
+    "Your bank account is buffering.",
+    "Your money ran away with someone richer.",
+    "Your financial stability is a myth.",
+    "Your budget is now a fantasy novel.",
+    "Your accountant is drinking heavily.",
+    "Your bank thinks you're joking.",
+    "Your credit score is in freefall.",
+    "Your overdraft is warming up.",
+    "Your wallet is screaming internally.",
+    "Your bank app is shaking.",
+    "Your savings are on life support.",
+    "Your financial future is a jump scare.",
+    "Your money is allergic to you.",
+    "Your money is filing a restraining order.",
+    "Your credit score is in witness protection.",
+    "Your wallet is applying for asylum.",
+    "Your bank is writing a breakup letter.",
+    "Your savings are running diagnostics.",
+    "Your financial stability is a rumor.",
+    "Your credit card is crying in the corner.",
+    "Your wallet is buffering.",
+    "Your bank is reconsidering your existence.",
+    "Your money is hiding behind the couch.",
+    "Your budget is screaming into the void.",
+    "Your credit score is begging for help.",
+    "Your wallet is questioning your decisions.",
+    "Your bank is sending you inspirational quotes.",
+    "Your savings are evaporating in real time.",
+    "Your financial future is glitching.",
+    "Your credit card is filing a complaint.",
+    "Your wallet is threatening to quit.",
+    "Your bank is preparing a PowerPoint about you.",
+    "Your money is running diagnostics.",
+    "Your budget is clinically dead.",
+    "Your credit score is on fire.",
+    "Your wallet is calling 911.",
+    "Your bank is praying for you.",
+    "Your savings are screaming internally.",
+    "Your financial future rage quit.",
+    "Your credit card is packing its bags.",
+    "Your wallet is drafting a lawsuit.",
+    "Your bank is updating your status to 'hopeless.'"
+  ];
+
+  function showRandomMessage() {
+    const msg = messages[Math.floor(Math.random() * messages.length)];
+    popup.textContent = msg;
+    popup.style.display = "block";
+
+    setTimeout(() => {
+      popup.style.display = "none";
+    }, 1000);
+  }
+
+  // 🔥 Show one immediately when page loads
+  showRandomMessage();
+
+  // 🔥 Then show one every 6 seconds
+  setInterval(showRandomMessage, 6000);
+</script>
+
+  
 </body>
 
 </html>
