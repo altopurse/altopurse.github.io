@@ -2,12 +2,9 @@
 <html lang="en">
 <head>
   <title>Support Our Gambling Addiction</title>
-
-  <!-- Ensures the page scales correctly on phones -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
-    /* Reset default spacing and ensure full height */
     html, body {
       margin: 0;
       padding: 0;
@@ -15,54 +12,40 @@
     }
 
     body {
-      /* Your background image */
+      /* Show full image without cropping */
       background-image: url('background-replacer-result (1).png');
-
-      /* Shows the ENTIRE image on all devices (no cropping) */
       background-size: contain;
-
-      /* Keeps the image centered */
-      background-position: center center;
-
-      /* Prevents tiling */
+      background-position: top center;
       background-repeat: no-repeat;
-
-      /* Fills empty space around the image (important for phones) */
       background-color: black;
 
-      /* Centers your donation box */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-
-      /* Text styling */
+      /* Allow scrolling so content never disappears */
+      display: block;
       text-align: center;
+
       font-family: Arial, sans-serif;
       color: white;
       text-shadow: 2px 2px 5px black;
     }
 
     .box {
-      /* Transparent dark background so text is readable */
+      /* Semi-transparent background for readability */
       background: rgba(0,0,0,0.55);
-
-      /* Spacing and rounded corners */
       padding: 20px;
       border-radius: 12px;
 
-      /* Makes it fit nicely on mobile */
+      /* Center the box and keep it visible */
       width: 90%;
       max-width: 600px;
+      margin: 20px auto; /* THIS FIXES THE DISAPPEARING BUTTONS */
       box-sizing: border-box;
     }
 
-    /* PayPal link styling */
     a {
       color: #00aaff;
       font-weight: bold;
     }
 
-    /* Stripe button styling */
     button {
       padding: 12px 24px;
       font-size: 18px;
@@ -77,11 +60,21 @@
 </head>
 
 <body>
-  <div class="box">
-    <!-- Main title -->
-    <h1>Support Our Gambling Addiction</h1>
 
-    <!-- Description text -->
+  <div class="box">
+    <h1>Support Our Gambling Addiction</h1>
     <p>If you'd like to support what we do, you can donate here:</p>
 
-    <!-- PayPal donation link -->
+    <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
+
+    <button id="stripeButton">Donate with Stripe (£5)</button>
+  </div>
+
+  <script>
+    document.getElementById("stripeButton").addEventListener("click", function () {
+      window.location.href = "https://buy.stripe.com/7sY9AM4rS8tjbTce1ma3u00";
+    });
+  </script>
+
+</body>
+</html>
