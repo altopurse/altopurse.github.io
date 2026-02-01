@@ -143,10 +143,13 @@ stripe-pricing-table {
 <script>
   document.getElementById("musicButton").addEventListener("click", function () {
     const audio = document.getElementById("themeSong");
+
+    audio.currentTime = 4; // jump to 4 seconds
     audio.volume = 1.0;
     audio.play();
   });
 </script>
+
 
 
 
