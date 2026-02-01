@@ -205,6 +205,9 @@ stripe-pricing-table {
   <img src="slot-machine-pixel.gif" class="corner bottom-left">
   <img src="slot-machine-pixel.gif" class="corner bottom-right">
 
+
+  <script> const musicButton = document.getElementById("musicButton"); const audio = document.getElementById("themeSong"); musicButton.addEventListener("click", function () { audio.currentTime = 13; audio.volume = 1.0; audio.play(); // Wait 2 seconds before shaking setTimeout(() => { document.body.classList.add("screen-shake"); // Remove shake class after 2 seconds setTimeout(() => { document.body.classList.remove("screen-shake"); }, 2000); }, 2000); // delay before shake starts }); </script>
+  
   <script>
     document.getElementById("stripeButton").addEventListener("click", function () {
       window.location.href = "https://buy.stripe.com/8x2eV68I87pff5o3mIa3u04";
