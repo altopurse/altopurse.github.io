@@ -165,24 +165,7 @@ stripe-pricing-table {
   <source src="CHIEF.mp3" type="audio/mpeg">
 </audio>
 
-<script>
-  const musicButton = document.getElementById("musicButton");
-  const audio = document.getElementById("themeSong");
 
-  musicButton.addEventListener("click", function () {
-    audio.currentTime = 13;
-    audio.volume = 1.0;
-    audio.play();
-
-    // Shake whole screen
-    document.body.classList.add("screen-shake");
-
-    // Remove shake class after 2 seconds
-    setTimeout(() => {
-      document.body.classList.remove("screen-shake");
-    }, 2000);
-  });
-</script>
 
 
 
