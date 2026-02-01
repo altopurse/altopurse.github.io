@@ -19,8 +19,12 @@
       background-repeat: no-repeat;
       background-color: black;
 
-      /* Allow scrolling so content never disappears */
-      display: block;
+      /* Enable scrolling AND allow centering */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;   /* THIS centers the box vertically */
+      align-items: center;       /* centers horizontally */
+      min-height: 100vh;         /* ensures full screen height */
       text-align: center;
 
       font-family: Arial, sans-serif;
@@ -29,16 +33,14 @@
     }
 
     .box {
-      /* Semi-transparent background for readability */
       background: rgba(0,0,0,0.55);
       padding: 20px;
       border-radius: 12px;
-
-      /* Center the box and keep it visible */
       width: 90%;
       max-width: 600px;
-      margin: 20px auto; /* THIS FIXES THE DISAPPEARING BUTTONS */
       box-sizing: border-box;
+      margin-top: 20px;
+      margin-bottom: 40px; /* ensures spacing on small screens */
     }
 
     a {
