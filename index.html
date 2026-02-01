@@ -334,15 +334,27 @@ auth.onAuthStateChanged(user => {
   if (user) {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("userBox").style.display = "block";
+    document.getElementById("openLoginButton").style.display = "none";
     document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
   } else {
-    document.getElementById("loginBox").style.display = "block";
+    document.getElementById("loginBox").style.display = "none";
     document.getElementById("userBox").style.display = "none";
+    document.getElementById("openLoginButton").style.display = "block";
   }
 });
+
 </script>
 
+<script>
+  const openLoginButton = document.getElementById("openLoginButton");
+  const loginBox = document.getElementById("loginBox");
 
+  openLoginButton.addEventListener("click", () => {
+    loginBox.style.display = "block";
+  });
+</script>
+
+  
 <div id="authError" style="
   position: fixed;
   top: 20px;
@@ -360,6 +372,20 @@ auth.onAuthStateChanged(user => {
 
 
 
+<button id="openLoginButton" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #635bff;
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 99999;
+">
+  Create Account
+</button>
 
  
   
@@ -374,6 +400,7 @@ auth.onAuthStateChanged(user => {
   color: white;
   z-index: 99999;
 ">
+
   <h3>Login</h3>
   <input id="email" type="email" placeholder="Email" style="width: 100%; margin-bottom: 8px;">
   <input id="password" type="password" placeholder="Password" style="width: 100%; margin-bottom: 8px;">
