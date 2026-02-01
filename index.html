@@ -272,7 +272,99 @@ stripe-pricing-table {
   setInterval(showRandomMessage, 6000);
 </script>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+
+
+<!-- FIREBASE -->
+
   
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAvfEMnVWj9LLF6fKaNn0ZSePkRn96pwsE",
+    authDomain: "backend-for-my-web.firebaseapp.com",
+    projectId: "backend-for-my-web",
+    storageBucket: "backend-for-my-web.firebasestorage.app",
+    messagingSenderId: "401686560458",
+    appId: "1:401686560458:web:52458ce3c89baaaa547e33",
+    measurementId: "G-KBDQ8QW1WM"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+</script>
+  
+<!-- SIGNUP -->
+  
+<script>
+  function signup() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    auth.createUserWithEmailAndPassword(email, pass)
+      .catch(err => alert(err.message));
+  }
+
+  function login() {
+    const email = document.getElementById("email").value;
+    const pass = document.getElementById("password").value;
+
+    auth.signInWithEmailAndPassword(email, pass)
+      .catch(err => alert(err.message));
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("userBox").style.display = "block";
+      document.getElementById("userEmail").textContent = "Logged in as: " + user.email;
+    } else {
+      document.getElementById("loginBox").style.display = "block";
+      document.getElementById("userBox").style.display = "none";
+    }
+  });
+</script>
+
+  
+<!-- LOGIN BOX -->
+<div id="loginBox" style="
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 10px;
+  color: white;
+  z-index: 99999;
+">
+  <h3>Login</h3>
+  <input id="email" type="email" placeholder="Email" style="width: 100%; margin-bottom: 8px;">
+  <input id="password" type="password" placeholder="Password" style="width: 100%; margin-bottom: 8px;">
+  <button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+</div>
+
+<!-- USER BOX -->
+<div id="userBox" style="
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: rgba(0,0,0,0.6);
+  padding: 15px;
+  border-radius: 10px;
+  color: white;
+  z-index: 99999;
+">
+  <p id="userEmail"></p>
+  <button onclick="logout()">Logout</button>
+</div>
+
+
 </body>
 
 </html>
