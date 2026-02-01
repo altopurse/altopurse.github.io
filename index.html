@@ -2,38 +2,67 @@
 <html lang="en">
 <head>
   <title>Support Our Gambling Addiction</title>
+
+  <!-- Ensures the page scales correctly on phones -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
+    /* Reset default spacing and ensure full height */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
     }
+
     body {
+      /* Your background image */
       background-image: url('background-replacer-result (1).png');
-      background-size: cover;
+
+      /* Shows the ENTIRE image on all devices (no cropping) */
+      background-size: contain;
+
+      /* Keeps the image centered */
       background-position: center center;
+
+      /* Prevents tiling */
       background-repeat: no-repeat;
-      background-attachment: fixed;
+
+      /* Fills empty space around the image (important for phones) */
+      background-color: black;
+
+      /* Centers your donation box */
       display: flex;
       justify-content: center;
       align-items: center;
+
+      /* Text styling */
+      text-align: center;
       font-family: Arial, sans-serif;
       color: white;
       text-shadow: 2px 2px 5px black;
-      text-align: center;
     }
+
     .box {
-      background: rgba(0,0,0,0.5);
+      /* Transparent dark background so text is readable */
+      background: rgba(0,0,0,0.55);
+
+      /* Spacing and rounded corners */
       padding: 20px;
-      border-radius: 10px;
-      max-width: 90%;
+      border-radius: 12px;
+
+      /* Makes it fit nicely on mobile */
+      width: 90%;
+      max-width: 600px;
       box-sizing: border-box;
     }
+
+    /* PayPal link styling */
     a {
       color: #00aaff;
       font-weight: bold;
     }
+
+    /* Stripe button styling */
     button {
       padding: 12px 24px;
       font-size: 18px;
@@ -46,20 +75,13 @@
     }
   </style>
 </head>
+
 <body>
   <div class="box">
-    <h1>Support Our Gambling Addiction!!!!</h1>
-    <p>If you’d like to support what we do, you can donate here:</p>
+    <!-- Main title -->
+    <h1>Support Our Gambling Addiction</h1>
 
-    <p><a href="https://paypal.me/josegirard2000">Donate via PayPal</a></p>
+    <!-- Description text -->
+    <p>If you'd like to support what we do, you can donate here:</p>
 
-    <button id="stripeButton">Donate with Apple Pay (£5)</button>
-  </div>
-
-  <script>
-    document.getElementById("stripeButton").addEventListener("click", function () {
-      window.location.href = "https://buy.stripe.com/7sY9AM4rS8tjbTce1ma3u00";
-    });
-  </script>
-</body>
-</html>
+    <!-- PayPal donation link -->
