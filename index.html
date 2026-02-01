@@ -70,6 +70,19 @@
       color: white;
       margin-top: 20px;
     }
+
+    /* --- SLOT MACHINE GIFS IN CORNERS --- */
+    .corner {
+      position: fixed;
+      width: 80px;      /* small/medium size */
+      height: auto;
+      z-index: 10;
+    }
+
+    .top-left    { top: 10px; left: 10px; }
+    .top-right   { top: 10px; right: 10px; }
+    .bottom-left { bottom: 10px; left: 10px; }
+    .bottom-right{ bottom: 10px; right: 10px; }
   </style>
 </head>
 
@@ -89,6 +102,12 @@
 
     <button id="stripeButton">Donate with Stripe (£5)</button>
   </div>
+
+  <!-- SLOT MACHINE GIFS (added exactly as requested) -->
+  <img src="slot-machine-pixel.gif" class="corner top-left">
+  <img src="slot-machine-pixel.gif" class="corner top-right">
+  <img src="slot-machine-pixel.gif" class="corner bottom-left">
+  <img src="slot-machine-pixel.gif" class="corner bottom-right">
 
   <script>
     document.getElementById("stripeButton").addEventListener("click", function () {
