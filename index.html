@@ -297,12 +297,15 @@ stripe-pricing-table {
 <!-- SIGNUP -->
   
 <script>
-  function showError(msg) {
-    const box = document.getElementById("authError");
-    box.textContent = msg;
-    box.style.display = "block";
-    setTimeout(() => box.style.display = "none", 4000);
-  }
+function showError(msg) {
+  const box = document.getElementById("authError");
+  box.textContent = msg;
+  box.style.display = "block";
+  setTimeout(() => box.style.display = "none", 4000);
+}
+
+showError("🔥 TEST ERROR BOX 🔥");
+
 
   function signup() {
     const email = document.getElementById("email").value;
