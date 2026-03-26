@@ -28,6 +28,8 @@
       justify-content: center;
       text-align: center;
       padding: 20px;
+      flex-direction: column;
+      gap: 25px;
     }
     h1 {
       font-size: 2.5rem;
@@ -37,10 +39,6 @@
       max-width: 500px;
       margin: 0 auto;
       color: #c0c0c0;
-    }
-    .player-wrapper {
-      text-align: center;
-      padding: 20px 0 10px;
     }
     footer {
       text-align: center;
@@ -57,21 +55,18 @@
   </header>
 
   <main>
-    <div>
-      <h1>Local mafia entertaintment</h1>
-      <p>
-        Independent sounds, raw stories, and underground energy.
-        This space is for projects, drops, and everything in between, ty shi.
-      </p>
-    </div>
-  </main>
+    <h1>Local mafia entertaintment</h1>
 
-  <div class="player-wrapper">
+    <p>
+      Independent sounds, raw stories, and underground energy.
+      This space is for projects, drops, and everything in between, ty shi.
+    </p>
+
     <audio controls>
       <source src="Local1017 - Easy (Season 5) WEBPAGE.wav" type="audio/wav">
       Your browser does not support the audio element.
     </audio>
-  </div>
+  </main>
 
   <footer>
     © <span id="year"></span> Local mafia entertaintment
