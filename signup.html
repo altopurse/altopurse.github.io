@@ -6,6 +6,61 @@
   <title>Sign Up</title>
   <link rel="stylesheet" href="styles.css">
 </head>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    // TU CONFIG AQUÍ
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const form = document.getElementById("signupForm");
+  const msg = document.getElementById("msg");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const username = document.getElementById("username").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+
+    msg.textContent = "Creando cuenta...";
+    msg.className = "msg";
+
+    try {
+      // Crear usuario en Firebase Auth
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+
+      // Guardar datos en Firestore
+      await setDoc(doc(db, "users", uid), {
+        username,
+        email,
+        phone,
+        credits: 0,
+        createdAt: new Date()
+      });
+
+      msg.textContent = "Cuenta creada correctamente";
+      msg.className = "msg ok";
+
+      // Redirigir al index
+      setTimeout(() => {
+        window.location.href = "index.html";
+      }, 1200);
+
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.className = "msg err";
+    }
+  });
+</script>
 
 <body>
 
@@ -16,10 +71,37 @@
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
-  <main>
-    <h1>Sign Up</h1>
-    <p>Aquí irá el formulario de registro.</p>
-  </main>
+<main>
+  <div class="card">
+    <h2>Crear cuenta</h2>
+
+    <form id="signupForm">
+      <label>
+        Nombre de usuario
+        <input type="text" id="username" required>
+      </label>
+
+      <label>
+        Email
+        <input type="email" id="email" required>
+      </label>
+
+      <label>
+        Contraseña
+        <input type="password" id="password" required>
+      </label>
+
+      <label>
+        Número de teléfono
+        <input type="tel" id="phone" required>
+      </label>
+
+      <button type="submit">Crear cuenta</button>
+      <p class="msg" id="msg"></p>
+    </form>
+  </div>
+</main>
+
 
   <!-- SCRIPT NAVBAR -->
   <script type="module" src="navbar.js"></script>
