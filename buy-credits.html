@@ -6,11 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Firebase SDK -->
+  <!-- 1️⃣ Firebase SIEMPRE VA PRIMERO -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
+    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
@@ -22,10 +22,15 @@
     };
 
     const app = initializeApp(firebaseConfig);
+
     window.firebaseAuth = getAuth(app);
     window.firebaseFunctions = getFunctions(app);
   </script>
+
+  <!-- 2️⃣ navbar.js DESPUÉS de Firebase -->
+  <script type="module" src="navbar.js"></script>
 </head>
+
 
 <body>
 
