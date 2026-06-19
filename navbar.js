@@ -1,3 +1,5 @@
+// navbar.js – Detecta login y actualiza la navbar
+
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -14,18 +16,17 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDoc(ref);
 
     let username = "User";
-
     if (snap.exists()) {
       username = snap.data().username;
     }
 
-    // Mostrar navbar logeado
+    // Navbar cuando está logeado
     nav.innerHTML = `
       <span class="nav-user">Hola, ${username}</span>
       <button id="logoutBtn" class="nav-btn">Logout</button>
     `;
 
-    // Logout
+    // Botón logout
     document.getElementById("logoutBtn").addEventListener("click", async () => {
       await signOut(auth);
       window.location.href = "index.html";
