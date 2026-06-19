@@ -1,7 +1,8 @@
 // main.js
-// Versión frontend: preparado para conectar con Firebase y Stripe
+// Frontend for JobLeadHub – UK leads marketplace
+// Uses Firebase (Firestore) for jobs and calls a Cloud Function for Stripe Checkout
 
-// 1. Firebase config (rellena con tus datos de Firebase)
+// 1. Firebase config (replace with your real Firebase project config)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import {
   getFirestore,
@@ -11,50 +12,52 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_PROYECTO.firebaseapp.com",
-  projectId: "TU_PROYECTO",
-  storageBucket: "TU_PROYECTO.appspot.com",
-  messagingSenderId: "XXX",
-  appId: "XXX",
+  apiKey: "YOUR_API_KEY",
+  authDomain: "backend-for-my-web.firebaseapp.com",
+  projectId: "backend-for-my-web",
+  storageBucket: "backend-for-my-web.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID",
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 2. Scroll al formulario desde el botón del hero
+// 2. Smooth scroll from hero button to job form
 const ctaBtn = document.getElementById("cta-post-job");
 const postJobSection = document.getElementById("post-job");
+
 if (ctaBtn && postJobSection) {
   ctaBtn.addEventListener("click", () => {
     postJobSection.scrollIntoView({ behavior: "smooth" });
   });
 }
 
-// 3. Manejo del formulario de trabajo
+// 3. Job form handling – save jobs to Firestore
 const jobForm = document.getElementById("job-form");
 const jobMsg = document.getElementById("job-message");
 
 if (jobForm) {
   jobForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    jobMsg.textContent = "Enviando trabajo...";
+    jobMsg.textContent = "Submitting your job...";
     jobMsg.className = "msg";
 
     const name = document.getElementById("client-name").value.trim();
     const email = document.getElementById("client-email").value.trim();
     const location = document.getElementById("client-location").value.trim();
     const type = document.getElementById("job-type").value;
-    const description = document.getElementById("job-description").value.trim();
+    const description = document
+      .getElementById("job-description")
+      .value.trim();
 
     if (!name || !email || !location || !type || !description) {
-      jobMsg.textContent = "Por favor, rellena todos los campos.";
+      jobMsg.textContent = "Please fill in all fields.";
       jobMsg.className = "msg err";
       return;
     }
 
     try {
-      // Guardar en Firestore
       await addDoc(collection(db, "jobs"), {
         name,
         email,
@@ -65,20 +68,26 @@ if (jobForm) {
         createdAt: serverTimestamp(),
       });
 
-      jobMsg.textContent = "Trabajo enviado. Un profesional se pondrá en contacto contigo.";
+      jobMsg.textContent =
+        "Your job has been submitted. A tradesperson will contact you shortly.";
       jobMsg.className = "msg ok";
       jobForm.reset();
     } catch (err) {
       console.error(err);
-      jobMsg.textContent = "Error al enviar el trabajo. Inténtalo de nuevo.";
+      jobMsg.textContent =
+        "There was an error submitting your job. Please try again.";
       jobMsg.className = "msg err";
     }
   });
 }
 
-// 4. Botón "Comprar lead" → aquí llamaremos a la Cloud Function de Stripe
+// 4. Buy lead button – call Firebase Cloud Function to create Stripe Checkout Session
 const leadsList = document.getElementById("leads-list");
 const leadMsg = document.getElementById("lead-message");
+
+// Change this URL to your real Cloud Function endpoint
+const CREATE_CHECKOUT_SESSION_URL =
+  "https://us-central1-backend-for-my-web.cloudfunctions.net/createCheckoutSession";
 
 if (leadsList) {
   leadsList.addEventListener("click", async (e) => {
@@ -86,27 +95,33 @@ if (leadsList) {
     if (!btn) return;
 
     const leadId = btn.dataset.leadId;
-    leadMsg.textContent = "Creando sesión de pago...";
+    leadMsg.textContent = "Creating payment session...";
     leadMsg.className = "msg";
 
     try {
-      // Aquí luego llamaremos a tu Firebase Function:
-      // const res = await fetch("https://us-central1-TU_PROYECTO.cloudfunctions.net/createCheckoutSession", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ leadId }),
-      // });
-      // const data = await res.json();
-      // window.location.href = data.checkoutUrl;
+      const res = await fetch(CREATE_CHECKOUT_SESSION_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          leadId,
+          amount: 5, // £5 per lead – adjust as needed
+        }),
+      });
 
-      // De momento, demo:
-      setTimeout(() => {
-        leadMsg.textContent = "Demo: aquí te redirigiría a Stripe Checkout.";
-        leadMsg.className = "msg ok";
-      }, 800);
+      if (!res.ok) {
+        throw new Error("HTTP error");
+      }
+
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else {
+        throw new Error("No checkoutUrl returned");
+      }
     } catch (err) {
       console.error(err);
-      leadMsg.textContent = "Error al iniciar el pago.";
+      leadMsg.textContent =
+        "There was an error starting the payment. Please try again.";
       leadMsg.className = "msg err";
     }
   });
