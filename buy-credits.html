@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Buy Credits – AltoPurse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
+      authDomain: "backend-for-my-web.firebaseapp.com",
+      projectId: "backend-for-my-web",
+      storageBucket: "backend-for-my-web.firebasestorage.app",
+      messagingSenderId: "401686560458",
+      appId: "1:401686560458:web:9182e39977b60e97547e33"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    window.firebaseAuth = getAuth(app);
+    window.firebaseFunctions = getFunctions(app);
+  </script>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">AltoPurse</div>
+    <nav class="nav-links" id="nav-auth"></nav>
+    <div class="menu-toggle" id="menuToggle">☰</div>
+  </header>
+
+  <main style="max-width:900px; margin:auto; padding:20px;">
+    <h2>Buy Credits</h2>
+    <p>Select a credit package below:</p>
+
+    <div class="card" style="display:flex; flex-direction:column; gap:15px;">
+
+      <button class="credit-btn" data-credits="10" data-amount="5">
+        ⭐ 10 Credits – £5
+      </button>
+
+      <button class="credit-btn" data-credits="25" data-amount="10">
+        ⭐ 25 Credits – £10
+      </button>
+
+      <button class="credit-btn" data-credits="50" data-amount="20">
+        ⭐ 50 Credits – £20
+      </button>
+
+      <button class="credit-btn" data-credits="100" data-amount="35">
+        ⭐ 100 Credits – £35
+      </button>
+
+    </div>
+
+    <p id="msg" class="msg" style="margin-top:20px;"></p>
+  </main>
+
+  <!-- NAVBAR SCRIPT -->
+  <script type="module" src="navbar.js"></script>
+
+  <!-- BUY CREDITS LOGIC -->
+  <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
+
+    const auth = window.firebaseAuth;
+    const functions = window.firebaseFunctions;
+
+    const msg = document.getElementById("msg");
+    const buttons = document.querySelectorAll(".credit-btn");
+
+    let userUID = null;
+
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        msg.textContent = "You must be logged in to buy credits.";
+        msg.className = "msg err";
+        buttons.forEach(btn => btn.disabled = true);
+      } else {
+        userUID = user.uid;
+      }
+    });
+
+    buttons.forEach(btn => {
+      btn.addEventListener("click", async () => {
+        if (!userUID) return;
+
+        const credits = btn.dataset.credits;
+        const amount = btn.dataset.amount;
+
+        msg.textContent = "Creating payment session...";
+        msg.className = "msg";
+
+        try {
+          const createPayment = httpsCallable(functions, "createTopUpPayment");
+
+          const res = await createPayment({
+            credits: Number(credits),
+            amount: Number(amount),
+            uid: userUID
+          });
+
+          const url = res.data.checkoutUrl;
+
+          msg.textContent = "Redirecting to payment...";
+          msg.className = "msg ok";
+
+          window.location.href = url;
+
+        } catch (err) {
+          msg.textContent = "Error: " + err.message;
+          msg.className = "msg err";
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>
