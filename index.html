@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>JobLeadHub – Encuentra trabajos y leads</title>
+  <title>JobLeadHub – Find Local Jobs & Verified Leads</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,8 +10,8 @@
   <header class="topbar">
     <div class="logo">JobLeadHub</div>
     <nav>
-      <a href="#post-job">Publicar trabajo</a>
-      <a href="#pros">Profesionales</a>
+      <a href="#post-job">Post a Job</a>
+      <a href="#pros">Tradespeople</a>
     </nav>
   </header>
 
@@ -20,63 +19,62 @@
     <!-- Hero -->
     <section class="hero">
       <div>
-        <h1>Consigue clientes sin perder tiempo.</h1>
-        <p>Publica trabajos o compra leads verificados en tu zona.</p>
-        <button id="cta-post-job">Publicar un trabajo</button>
+        <h1>Get local customers without the hassle.</h1>
+        <p>Post jobs or purchase verified leads in your area.</p>
+        <button id="cta-post-job">Post a Job</button>
       </div>
     </section>
 
-    <!-- Formulario para clientes -->
+    <!-- Job Form -->
     <section id="post-job" class="card">
-      <h2>Publicar un trabajo</h2>
+      <h2>Post a Job</h2>
       <form id="job-form">
         <label>
-          Nombre:
+          Your Name:
           <input type="text" id="client-name" required />
         </label>
         <label>
-          Email:
+          Email Address:
           <input type="email" id="client-email" required />
         </label>
         <label>
-          Localidad / Código postal:
+          Location / Postcode:
           <input type="text" id="client-location" required />
         </label>
         <label>
-          Tipo de trabajo:
+          Job Type:
           <select id="job-type" required>
-            <option value="">Selecciona…</option>
-            <option value="gardening">Jardinería</option>
-            <option value="plumbing">Fontanería</option>
-            <option value="electric">Electricidad</option>
-            <option value="cleaning">Limpieza</option>
-            <option value="other">Otro</option>
+            <option value="">Select…</option>
+            <option value="gardening">Gardening</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="electric">Electrical</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="other">Other</option>
           </select>
         </label>
         <label>
-          Descripción:
+          Job Description:
           <textarea id="job-description" rows="4" required></textarea>
         </label>
-        <button type="submit">Enviar trabajo</button>
+        <button type="submit">Submit Job</button>
         <p id="job-message" class="msg"></p>
       </form>
     </section>
 
-    <!-- Zona profesionales -->
+    <!-- Leads for Tradespeople -->
     <section id="pros" class="card">
-      <h2>Leads disponibles</h2>
+      <h2>Available Leads</h2>
       <p class="hint">
-        Versión demo: estos leads están mockeados. Luego los cargaremos desde Firestore.
+        Demo version: these leads are placeholders. They will load from Firestore later.
       </p>
       <div id="leads-list" class="leads">
-        <!-- Ejemplo de lead -->
         <div class="lead">
-          <h3>Jardinería en Cambridge</h3>
-          <p>Recorte de setos y limpieza de jardín pequeño.</p>
-          <p><strong>Zona:</strong> CB1</p>
-          <p><strong>Precio lead:</strong> £5</p>
+          <h3>Gardening Job in Cambridge</h3>
+          <p>Hedge trimming and small garden tidy-up.</p>
+          <p><strong>Postcode:</strong> CB1</p>
+          <p><strong>Lead Price:</strong> £5</p>
           <button class="buy-lead-btn" data-lead-id="demo-lead-1">
-            Comprar lead
+            Buy Lead
           </button>
         </div>
       </div>
@@ -85,10 +83,9 @@
   </main>
 
   <footer>
-    <p>© JobLeadHub – Demo. No es un servicio real (todavía 😏).</p>
+    <p>© JobLeadHub – Demo version. Not a real service yet.</p>
   </footer>
 
-  <!-- Firebase + lógica -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
