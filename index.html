@@ -32,89 +32,107 @@
 </head>
 
 <body>
+
+  <!-- NAVBAR -->
   <header class="navbar">
     <div class="logo">AltoPurse</div>
-
-    <nav class="nav-links" id="nav-auth">
-      <!-- Aquí se actualizará automáticamente -->
-    </nav>
-
+    <nav class="nav-links" id="nav-auth"></nav>
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
-  </header>
-
-  <main>
-    <!-- Hero -->
-    <section class="hero">
-      <div>
-        <h1>Get local customers without the hassle.</h1>
-        <p>Post jobs or purchase verified leads in your area.</p>
-        <button id="cta-post-job">Post a Job</button>
-      </div>
-    </section>
-
-    <!-- Job Form -->
-    <section id="post-job" class="card">
-      <h2>Post a Job</h2>
-      <form id="job-form">
-        <label>
-          Your Name:
-          <input type="text" id="client-name" required />
-        </label>
-        <label>
-          Email Address:
-          <input type="email" id="client-email" required />
-        </label>
-        <label>
-          Location / Postcode:
-          <input type="text" id="client-location" required />
-        </label>
-        <label>
-          Job Type:
-          <select id="job-type" required>
-            <option value="">Select…</option>
-            <option value="gardening">Gardening</option>
-            <option value="plumbing">Plumbing</option>
-            <option value="electric">Electrical</option>
-            <option value="cleaning">Cleaning</option>
-            <option value="other">Other</option>
-          </select>
-        </label>
-        <label>
-          Job Description:
-          <textarea id="job-description" rows="4" required></textarea>
-        </label>
-        <button type="submit">Submit Job</button>
-        <p id="job-message" class="msg"></p>
-      </form>
-    </section>
-
-    <!-- Leads -->
-    <section id="pros" class="card">
-      <h2>Available Leads</h2>
-      <p class="hint">
-        Demo version: these leads are placeholders. They will load from Firestore later.
+  <!-- DASHBOARD (solo visible si el usuario está logeado) -->
+  <section id="dashboard" style="display:none; padding:20px; max-width:900px; margin:auto;">
+    <div class="card">
+      <h2 id="dash-username">Hola 👋</h2>
+      <p id="dash-credits" style="font-size:1.2rem; margin-top:10px;">
+        Créditos: ...
       </p>
 
-      <div id="leads-list" class="leads">
-        <div class="lead">
-          <h3>Gardening Job in Cambridge</h3>
-          <p>Hedge trimming and small garden tidy-up.</p>
-          <p><strong>Postcode:</strong> CB1</p>
-          <p><strong>Lead Price:</strong> £5</p>
-          <button class="buy-lead-btn" data-lead-id="demo-lead-1">
-            Buy Lead
-          </button>
+      <button onclick="alert('Comprar créditos pronto disponible')" style="margin-top:15px;">
+        Comprar créditos
+      </button>
+
+      <button onclick="alert('Crear trabajo pronto disponible')" style="margin-top:10px; background:#22c55e;">
+        Crear trabajo
+      </button>
+    </div>
+  </section>
+
+  <!-- LANDING (solo visible si NO está logeado) -->
+  <section id="landing">
+    <main>
+
+      <!-- Hero -->
+      <section class="hero">
+        <div>
+          <h1>Get local customers without the hassle.</h1>
+          <p>Post jobs or purchase verified leads in your area.</p>
+          <button id="cta-post-job">Post a Job</button>
         </div>
-      </div>
+      </section>
 
-      <p id="lead-message" class="msg"></p>
+      <!-- Job Form -->
+      <section id="post-job" class="card">
+        <h2>Post a Job</h2>
+        <form id="job-form">
+          <label>
+            Your Name:
+            <input type="text" id="client-name" required />
+          </label>
+          <label>
+            Email Address:
+            <input type="email" id="client-email" required />
+          </label>
+          <label>
+            Location / Postcode:
+            <input type="text" id="client-location" required />
+          </label>
+          <label>
+            Job Type:
+            <select id="job-type" required>
+              <option value="">Select…</option>
+              <option value="gardening">Gardening</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electric">Electrical</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+          <label>
+            Job Description:
+            <textarea id="job-description" rows="4" required></textarea>
+          </label>
+          <button type="submit">Submit Job</button>
+          <p id="job-message" class="msg"></p>
+        </form>
+      </section>
 
-      <!-- Where unlocked job details will appear -->
-      <div id="job-details" class="card" style="margin-top:20px;"></div>
-    </section>
-  </main>
+      <!-- Leads -->
+      <section id="pros" class="card">
+        <h2>Available Leads</h2>
+        <p class="hint">
+          Demo version: these leads are placeholders. They will load from Firestore later.
+        </p>
+
+        <div id="leads-list" class="leads">
+          <div class="lead">
+            <h3>Gardening Job in Cambridge</h3>
+            <p>Hedge trimming and small garden tidy-up.</p>
+            <p><strong>Postcode:</strong> CB1</p>
+            <p><strong>Lead Price:</strong> £5</p>
+            <button class="buy-lead-btn" data-lead-id="demo-lead-1">
+              Buy Lead
+            </button>
+          </div>
+        </div>
+
+        <p id="lead-message" class="msg"></p>
+
+        <div id="job-details" class="card" style="margin-top:20px;"></div>
+      </section>
+
+    </main>
+  </section>
 
   <footer>
     <p>© JobLeadHub – Demo version. Not a real service yet.</p>
@@ -122,5 +140,43 @@
 
   <!-- Your main JS -->
   <script type="module" src="main.js"></script>
+
+  <!-- NAVBAR SCRIPT -->
+  <script type="module" src="navbar.js"></script>
+
+  <!-- DASHBOARD LOGIC -->
+  <script type="module">
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+    const auth = window.firebaseAuth;
+    const db = window.firebaseDB;
+
+    const landing = document.getElementById("landing");
+    const dashboard = document.getElementById("dashboard");
+    const dashUser = document.getElementById("dash-username");
+    const dashCredits = document.getElementById("dash-credits");
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        landing.style.display = "none";
+        dashboard.style.display = "block";
+
+        const ref = doc(db, "users", user.uid);
+        const snap = await getDoc(ref);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          dashUser.textContent = `Hola ${data.username} 👋`;
+          dashCredits.textContent = `💰 Créditos: ${data.credits}`;
+        }
+
+      } else {
+        landing.style.display = "block";
+        dashboard.style.display = "none";
+      }
+    });
+  </script>
+
 </body>
 </html>
