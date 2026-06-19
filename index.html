@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
 
-  <!-- Firebase SDK (CDN) -->
+  <!-- 1️⃣ Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
     import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
@@ -24,11 +24,13 @@
 
     const app = initializeApp(firebaseConfig);
 
-    // Expose Firebase to main.js
     window.firebaseAuth = getAuth(app);
     window.firebaseDB = getFirestore(app);
     window.firebaseFunctions = getFunctions(app);
   </script>
+
+  <!-- 2️⃣ navbar.js SIEMPRE DESPUÉS DE FIREBASE -->
+  <script type="module" src="navbar.js"></script>
 </head>
 
 <body>
@@ -40,7 +42,7 @@
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
-  <!-- DASHBOARD (solo visible si el usuario está logeado) -->
+  <!-- DASHBOARD -->
   <section id="dashboard" style="display:none; padding:20px; max-width:900px; margin:auto;">
     <div class="card">
       <h2 id="dash-username">Hola 👋</h2>
@@ -48,17 +50,17 @@
         Créditos: ...
       </p>
 
-      <button onclick="alert('Comprar créditos pronto disponible')" style="margin-top:15px;">
-        Comprar créditos
-      </button>
+      <a href="buy-credits.html">
+        <button style="margin-top:15px;">Comprar créditos</button>
+      </a>
 
-      <button onclick="alert('Crear trabajo pronto disponible')" style="margin-top:10px; background:#22c55e;">
-        Crear trabajo
-      </button>
+      <a href="#post-job">
+        <button style="margin-top:10px; background:#22c55e;">Crear trabajo</button>
+      </a>
     </div>
   </section>
 
-  <!-- LANDING (solo visible si NO está logeado) -->
+  <!-- LANDING -->
   <section id="landing">
     <main>
 
@@ -138,13 +140,10 @@
     <p>© JobLeadHub – Demo version. Not a real service yet.</p>
   </footer>
 
-  <!-- Your main JS -->
+  <!-- 3️⃣ main.js SIEMPRE DESPUÉS DE navbar.js -->
   <script type="module" src="main.js"></script>
 
-  <!-- NAVBAR SCRIPT -->
-  <script type="module" src="navbar.js"></script>
-
-  <!-- DASHBOARD LOGIC -->
+  <!-- 4️⃣ Dashboard logic -->
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
     import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
