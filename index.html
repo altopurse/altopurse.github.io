@@ -2,33 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
-    authDomain: "backend-for-my-web.firebaseapp.com",
-    projectId: "backend-for-my-web",
-    storageBucket: "backend-for-my-web.firebasestorage.app",
-    messagingSenderId: "401686560458",
-    appId: "1:401686560458:web:9182e39977b60e97547e33",
-    measurementId: "G-3YBSYW76B6"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
   <title>JobLeadHub – Find Local Jobs & Verified Leads</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase SDK (CDN) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
+      authDomain: "backend-for-my-web.firebaseapp.com",
+      projectId: "backend-for-my-web",
+      storageBucket: "backend-for-my-web.firebasestorage.app",
+      messagingSenderId: "401686560458",
+      appId: "1:401686560458:web:9182e39977b60e97547e33"
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    // Expose Firebase to main.js
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDB = getFirestore(app);
+    window.firebaseFunctions = getFunctions(app);
+  </script>
 </head>
+
 <body>
   <header class="topbar">
     <div class="logo">JobLeadHub</div>
@@ -84,12 +86,13 @@
       </form>
     </section>
 
-    <!-- Leads for Tradespeople -->
+    <!-- Leads -->
     <section id="pros" class="card">
       <h2>Available Leads</h2>
       <p class="hint">
         Demo version: these leads are placeholders. They will load from Firestore later.
       </p>
+
       <div id="leads-list" class="leads">
         <div class="lead">
           <h3>Gardening Job in Cambridge</h3>
@@ -101,7 +104,11 @@
           </button>
         </div>
       </div>
+
       <p id="lead-message" class="msg"></p>
+
+      <!-- Where unlocked job details will appear -->
+      <div id="job-details" class="card" style="margin-top:20px;"></div>
     </section>
   </main>
 
@@ -109,6 +116,7 @@
     <p>© JobLeadHub – Demo version. Not a real service yet.</p>
   </footer>
 
+  <!-- Your main JS -->
   <script type="module" src="main.js"></script>
 </body>
 </html>
