@@ -1,46 +1,41 @@
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+const auth = window.firebaseAuth;
+const db = window.firebaseDB;
 
-const firebaseConfig = {
-  // TU CONFIG AQUÍ
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-const navAuth = document.getElementById("nav-auth");
-const menuToggle = document.getElementById("menuToggle");
-
-// Toggle menú móvil
-menuToggle.addEventListener("click", () => {
-  navAuth.classList.toggle("show");
-});
+const nav = document.getElementById("nav-auth");
 
 // Detectar login
 onAuthStateChanged(auth, async (user) => {
   if (user) {
+    // Obtener datos del usuario
     const ref = doc(db, "users", user.uid);
     const snap = await getDoc(ref);
 
-    let username = user.email;
-    if (snap.exists() && snap.data().username) {
+    let username = "User";
+
+    if (snap.exists()) {
       username = snap.data().username;
     }
 
-    navAuth.innerHTML = `
-      <span class="username">Hola, ${username}</span>
-      <a href="#" id="logoutBtn">Logout</a>
+    // Mostrar navbar logeado
+    nav.innerHTML = `
+      <span class="nav-user">Hola, ${username}</span>
+      <button id="logoutBtn" class="nav-btn">Logout</button>
     `;
 
-    document.getElementById("logoutBtn").onclick = () => signOut(auth);
+    // Logout
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    });
 
   } else {
-    navAuth.innerHTML = `
-      <a href="login.html" class="btn-login">Login</a>
-      <a href="signup.html" class="btn-signup">Sign Up</a>
+    // Navbar cuando NO está logeado
+    nav.innerHTML = `
+      <a href="login.html">Login</a>
+      <a href="signup.html">Sign Up</a>
     `;
   }
 });
