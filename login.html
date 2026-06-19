@@ -1,9 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Login</title>
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>Login – AltoPurse</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- 1️⃣ Firebase SIEMPRE VA PRIMERO -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
+      authDomain: "backend-for-my-web.firebaseapp.com",
+      projectId: "backend-for-my-web",
+      storageBucket: "backend-for-my-web.firebasestorage.app",
+      messagingSenderId: "401686560458",
+      appId: "1:401686560458:web:9182e39977b60e97547e33"
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    window.firebaseAuth = getAuth(app);
+    window.firebaseDB = getFirestore(app);
+    window.firebaseFunctions = getFunctions(app);
+  </script>
+
+  <!-- 2️⃣ navbar.js DESPUÉS de Firebase -->
+  <script type="module" src="navbar.js"></script>
 </head>
 
 <body>
@@ -22,12 +49,12 @@
       <form id="loginForm">
         <label>
           Email
-          <input type="email" id="email" required>
+          <input type="email" id="email" required />
         </label>
 
         <label>
           Contraseña
-          <input type="password" id="password" required>
+          <input type="password" id="password" required />
         </label>
 
         <button type="submit">Entrar</button>
@@ -40,21 +67,11 @@
     </div>
   </main>
 
-  <!-- NAVBAR SCRIPT -->
-  <script type="module" src="navbar.js"></script>
-
-  <!-- LOGIN LOGIC -->
+  <!-- 3️⃣ LOGIN LOGIC (usa la MISMA instancia global de Firebase) -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-    const firebaseConfig = {
-      // TU CONFIG AQUÍ
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
+    const auth = window.firebaseAuth;
     const form = document.getElementById("loginForm");
     const msg = document.getElementById("msg");
 
@@ -75,7 +92,7 @@
 
         setTimeout(() => {
           window.location.href = "index.html";
-        }, 1000);
+        }, 800);
 
       } catch (err) {
         msg.textContent = "Error: " + err.message;
