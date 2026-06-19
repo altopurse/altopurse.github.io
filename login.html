@@ -16,12 +16,73 @@
   </header>
 
   <main>
-    <h1>Login</h1>
-    <p>Aquí irá el formulario de login.</p>
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+
+      <form id="loginForm">
+        <label>
+          Email
+          <input type="email" id="email" required>
+        </label>
+
+        <label>
+          Contraseña
+          <input type="password" id="password" required>
+        </label>
+
+        <button type="submit">Entrar</button>
+        <p class="msg" id="msg"></p>
+      </form>
+
+      <p class="hint">
+        ¿No tienes cuenta? <a href="signup.html">Crear cuenta</a>
+      </p>
+    </div>
   </main>
 
-  <!-- SCRIPT NAVBAR -->
+  <!-- NAVBAR SCRIPT -->
   <script type="module" src="navbar.js"></script>
+
+  <!-- LOGIN LOGIC -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      // TU CONFIG AQUÍ
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("loginForm");
+    const msg = document.getElementById("msg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+
+      msg.textContent = "Iniciando sesión...";
+      msg.className = "msg";
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+
+        msg.textContent = "Sesión iniciada";
+        msg.className = "msg ok";
+
+        setTimeout(() => {
+          window.location.href = "index.html";
+        }, 1000);
+
+      } catch (err) {
+        msg.textContent = "Error: " + err.message;
+        msg.className = "msg err";
+      }
+    });
+  </script>
 
 </body>
 </html>
