@@ -1,95 +1,32 @@
 // main.js — core app logic for JobLeadHub
-// DO NOT add Firebase config here. Auth/DB/Functions come from window globals set in firebase-init.js
 
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  onAuthStateChanged,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
-import {
-  collection,
-  addDoc,
-  getDocs,
-  doc,
-  getDoc,
-  query,
-  where,
+  collection, addDoc, getDocs, doc, getDoc, query, where,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
 
-import {
-  httpsCallable,
-} from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
-
-// -----------------------------
-// Globals from firebase-init.js
-// -----------------------------
 const auth      = window.firebaseAuth;
 const db        = window.firebaseDB;
 const functions = window.firebaseFunctions;
 
-// -----------------------------
-// DOM — views
-// -----------------------------
+// Views
 const landingView   = document.getElementById("landing-view");
 const dashboardView = document.getElementById("dashboard-view");
 
-// -----------------------------
-// DOM — welcome strip
-// -----------------------------
-const userUsername = document.getElementById("user-username");
-const userCredits  = document.getElementById("user-credits");
-
-// -----------------------------
-// DOM — leads
-// -----------------------------
-const leadsList    = document.getElementById("leads-list");
-const leadsEmpty   = document.getElementById("leads-empty");
-
-const purchasedList  = document.getElementById("purchased-list");
-const purchasedEmpty = document.getElementById("purchased-empty");
-
-// -----------------------------
-// DOM — jobs
-// -----------------------------
-const jobsList  = document.getElementById("jobs-list");
-const jobsEmpty = document.getElementById("jobs-empty");
-
-// -----------------------------
-// DOM — logout buttons
-// -----------------------------
-const logoutBtn    = document.getElementById("logout-btn");      // dashboard card
-const navLogoutBtn = document.getElementById("nav-logout-btn");  // navbar
-
-// -----------------------------
-// DOM — dashboard job form
-// -----------------------------
-const dashboardJobForm    = document.getElementById("dashboard-job-form");
-const dashboardJobMessage = document.getElementById("dashboard-job-message");
-
-// -----------------------------
-// DOM — landing job form
-// -----------------------------
-const landingJobForm    = document.getElementById("landing-job-form");
-const landingJobMessage = document.getElementById("landing-job-message");
-
-// -----------------------------
-// Helpers
-// -----------------------------
 function showView(view) {
-  if (landingView)   landingView.classList.add("hidden");
-  if (dashboardView) dashboardView.classList.add("hidden");
-  if (view)          view.classList.remove("hidden");
+  landingView?.classList.add("hidden");
+  dashboardView?.classList.add("hidden");
+  view?.classList.remove("hidden");
 }
 
-function setMessage(el, text, type = "") {
+function setMsg(el, text, type = "") {
   if (!el) return;
   el.textContent = text;
-  el.className   = "form-message" + (type ? ` msg-${type}` : "");
+  el.className   = "msg" + (type ? ` ${type}` : "");
 }
 
-// -----------------------------
-// Auth state observer
-// -----------------------------
+// ── Auth observer ──────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     showView(dashboardView);
@@ -104,88 +41,64 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// -----------------------------
-// Logout
-// -----------------------------
+// ── Logout ─────────────────────────────────────────────────────
 async function handleLogout() {
-  try {
-    await signOut(auth);
-    window.location.href = "index.html";
-  } catch (err) {
-    console.error("Logout error:", err);
-  }
+  try { await signOut(auth); window.location.href = "index.html"; }
+  catch (err) { console.error("Logout error:", err); }
 }
+document.getElementById("logout-btn")?.addEventListener("click", handleLogout);
 
-if (logoutBtn)    logoutBtn.addEventListener("click", handleLogout);
-if (navLogoutBtn) navLogoutBtn.addEventListener("click", handleLogout);
-
-// -----------------------------
-// Load user profile
-// -----------------------------
+// ── User profile ───────────────────────────────────────────────
 async function loadUserProfile(uid) {
   try {
     const snap = await getDoc(doc(db, "users", uid));
     if (!snap.exists()) return;
-
-    const data = snap.data();
-    if (userUsername) userUsername.textContent = data.username || "there";
-    if (userCredits)  userCredits.textContent  = data.credits  ?? 0;
-  } catch (err) {
-    console.error("Error loading user profile:", err);
-  }
+    const d = snap.data();
+    const el = document.getElementById("user-username");
+    const cr = document.getElementById("user-credits");
+    if (el) el.textContent = d.username || "there";
+    if (cr) cr.textContent = d.credits  ?? 0;
+  } catch (err) { console.error("Profile error:", err); }
 }
 
-// -----------------------------
-// Load available leads
-// -----------------------------
+// ── Available leads ────────────────────────────────────────────
 async function loadAvailableLeads() {
-  if (!leadsList) return;
-
-  leadsList.innerHTML = "";
+  const list  = document.getElementById("leads-list");
+  const empty = document.getElementById("leads-empty");
+  if (!list) return;
+  list.innerHTML = "";
 
   try {
     const snap = await getDocs(collection(db, "leads"));
-
-    if (snap.empty) {
-      if (leadsEmpty) leadsEmpty.style.display = "block";
-      return;
-    }
-
-    if (leadsEmpty) leadsEmpty.style.display = "none";
+    if (snap.empty) { if (empty) empty.style.display = "block"; return; }
+    if (empty) empty.style.display = "none";
 
     snap.forEach((docSnap) => {
       const lead = docSnap.data();
       const card = document.createElement("div");
-      card.className = "lead-card";
+      card.className = "lead";
       card.innerHTML = `
-        <h4>${lead.title || "Lead"}</h4>
+        <h3>${lead.title || "Lead"}</h3>
         <p>${lead.description || ""}</p>
         <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
-        <p><strong>Cost:</strong> ${lead.price ?? 0} credits</p>
-        <button class="btn btn-primary btn-sm buy-lead-btn" data-lead-id="${docSnap.id}">
-          Buy Lead
-        </button>
+        <p><strong>Cost:</strong> ${lead.price ?? 1} credit${(lead.price ?? 1) !== 1 ? "s" : ""}</p>
+        <button class="buy-lead-btn" data-lead-id="${docSnap.id}">Unlock Lead</button>
       `;
-      leadsList.appendChild(card);
+      list.appendChild(card);
     });
   } catch (err) {
-    console.error("Error loading leads:", err);
-    if (leadsList) leadsList.innerHTML = "<p class='error-text'>Could not load leads. Please refresh.</p>";
+    console.error("Leads error:", err);
+    list.innerHTML = "<p class='msg err'>Could not load leads. Please refresh.</p>";
   }
 }
 
-// -----------------------------
-// Buy lead (event delegation)
-// -----------------------------
+// ── Buy lead (event delegation) ────────────────────────────────
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".buy-lead-btn");
   if (!btn) return;
 
   const user = auth.currentUser;
-  if (!user) {
-    alert("You must be signed in to buy leads.");
-    return;
-  }
+  if (!user) { alert("You must be signed in to buy leads."); return; }
 
   const leadId = btn.dataset.leadId;
   if (!leadId) return;
@@ -203,175 +116,140 @@ document.addEventListener("click", async (e) => {
     } else {
       alert("Could not unlock this lead. Please try again.");
       btn.disabled    = false;
-      btn.textContent = "Buy Lead";
+      btn.textContent = "Unlock Lead";
     }
   } catch (err) {
-    console.error("Error buying lead:", err);
+    console.error("Buy lead error:", err);
     alert(err.code === "failed-precondition"
       ? "Not enough credits. Top up to continue."
-      : "Error buying lead. Please try again."
-    );
+      : "Error buying lead. Please try again.");
     btn.disabled    = false;
-    btn.textContent = "Buy Lead";
+    btn.textContent = "Unlock Lead";
   }
 });
 
-// -----------------------------
-// Load purchased leads
-// -----------------------------
+// ── Purchased leads ────────────────────────────────────────────
 async function loadPurchasedLeads(uid) {
-  if (!purchasedList) return;
-
-  purchasedList.innerHTML = "";
+  const list  = document.getElementById("purchased-list");
+  const empty = document.getElementById("purchased-empty");
+  if (!list) return;
+  list.innerHTML = "";
 
   try {
     const q    = query(collection(db, "purchased"), where("userId", "==", uid));
     const snap = await getDocs(q);
-
-    if (snap.empty) {
-      if (purchasedEmpty) purchasedEmpty.style.display = "block";
-      return;
-    }
-
-    if (purchasedEmpty) purchasedEmpty.style.display = "none";
+    if (snap.empty) { if (empty) empty.style.display = "block"; return; }
+    if (empty) empty.style.display = "none";
 
     snap.forEach((docSnap) => {
       const lead = docSnap.data();
       const card = document.createElement("div");
-      card.className = "lead-card purchased";
+      card.className = "lead purchased";
       card.innerHTML = `
-        <h4>${lead.title || "Lead"}</h4>
+        <h3>${lead.title || "Lead"}</h3>
         <p>${lead.description || ""}</p>
-        <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
-        <p><strong>Contact:</strong> ${lead.contactName || "N/A"}</p>
-        <p><strong>Email:</strong> ${lead.contactEmail || "N/A"}</p>
+        <p><strong>Location:</strong>  ${lead.location     || "N/A"}</p>
+        <p><strong>Name:</strong>      ${lead.contactName  || "N/A"}</p>
+        <p><strong>Email:</strong>     <a href="mailto:${lead.contactEmail}">${lead.contactEmail || "N/A"}</a></p>
+        <p><strong>Phone:</strong>     <a href="tel:${lead.contactPhone}">${lead.contactPhone || "N/A"}</a></p>
       `;
-      purchasedList.appendChild(card);
+      list.appendChild(card);
     });
   } catch (err) {
-    console.error("Error loading purchased leads:", err);
-    if (purchasedList) purchasedList.innerHTML = "<p class='error-text'>Could not load purchased leads.</p>";
+    console.error("Purchased leads error:", err);
+    list.innerHTML = "<p class='msg err'>Could not load purchased leads.</p>";
   }
 }
 
-// -----------------------------
-// Load my posted jobs
-// -----------------------------
+// ── My posted jobs ─────────────────────────────────────────────
 async function loadMyJobs(uid) {
-  if (!jobsList) return;
-
-  jobsList.innerHTML = "";
+  const list  = document.getElementById("jobs-list");
+  const empty = document.getElementById("jobs-empty");
+  if (!list) return;
+  list.innerHTML = "";
 
   try {
     const q    = query(collection(db, "jobs"), where("userId", "==", uid));
     const snap = await getDocs(q);
-
-    if (snap.empty) {
-      if (jobsEmpty) jobsEmpty.style.display = "block";
-      return;
-    }
-
-    if (jobsEmpty) jobsEmpty.style.display = "none";
+    if (snap.empty) { if (empty) empty.style.display = "block"; return; }
+    if (empty) empty.style.display = "none";
 
     snap.forEach((docSnap) => {
       const job  = docSnap.data();
       const card = document.createElement("div");
-      card.className = "job-card";
+      card.className = "lead";
       card.innerHTML = `
-        <h4>${job.jobTitle || "Job"}</h4>
+        <h3>${job.jobTitle || "Job"}</h3>
         <p><strong>Category:</strong> ${job.jobCategory || "N/A"}</p>
         <p>${job.jobDescription || ""}</p>
         <p><strong>Location:</strong> ${job.jobLocation || "N/A"}</p>
       `;
-      jobsList.appendChild(card);
+      list.appendChild(card);
     });
   } catch (err) {
-    console.error("Error loading jobs:", err);
-    if (jobsList) jobsList.innerHTML = "<p class='error-text'>Could not load your jobs.</p>";
+    console.error("Jobs error:", err);
+    list.innerHTML = "<p class='msg err'>Could not load your jobs.</p>";
   }
 }
 
-// -----------------------------
-// Dashboard — post job form
-// -----------------------------
-if (dashboardJobForm) {
-  dashboardJobForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+// ── Dashboard job form ─────────────────────────────────────────
+document.getElementById("dashboard-job-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const user = auth.currentUser;
+  const msgEl = document.getElementById("dashboard-job-message");
 
-    const user = auth.currentUser;
-    if (!user) {
-      setMessage(dashboardJobMessage, "You must be signed in to post a job.", "error");
-      return;
-    }
+  if (!user) { setMsg(msgEl, "You must be signed in to post a job.", "err"); return; }
 
-    setMessage(dashboardJobMessage, "Submitting…");
+  setMsg(msgEl, "Submitting…");
 
-    const jobTitle       = document.getElementById("dashboard-job-title").value.trim();
-    const jobCategory    = document.getElementById("dashboard-job-category").value;
-    const jobDescription = document.getElementById("dashboard-job-description").value.trim();
-    const jobLocation    = document.getElementById("dashboard-job-location").value.trim();
+  const jobTitle       = document.getElementById("dashboard-job-title").value.trim();
+  const jobCategory    = document.getElementById("dashboard-job-category").value;
+  const jobDescription = document.getElementById("dashboard-job-description").value.trim();
+  const jobLocation    = document.getElementById("dashboard-job-location").value.trim();
 
-    if (!jobTitle || !jobCategory || !jobDescription || !jobLocation) {
-      setMessage(dashboardJobMessage, "Please fill in all fields.", "error");
-      return;
-    }
+  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation) {
+    setMsg(msgEl, "Please fill in all fields.", "err"); return;
+  }
 
-    try {
-      await addDoc(collection(db, "jobs"), {
-        userId: user.uid,
-        jobTitle,
-        jobCategory,
-        jobDescription,
-        jobLocation,
-        createdAt: new Date(),
-      });
+  try {
+    await addDoc(collection(db, "jobs"), {
+      userId: user.uid, jobTitle, jobCategory, jobDescription, jobLocation,
+      createdAt: new Date(),
+    });
+    setMsg(msgEl, "Job posted successfully!", "ok");
+    document.getElementById("dashboard-job-form").reset();
+    await loadMyJobs(user.uid);
+  } catch (err) {
+    console.error("Post job error:", err);
+    setMsg(msgEl, "Error posting job. Please try again.", "err");
+  }
+});
 
-      setMessage(dashboardJobMessage, "Job posted successfully.", "success");
-      dashboardJobForm.reset();
-      await loadMyJobs(user.uid);
-    } catch (err) {
-      console.error("Error posting job:", err);
-      setMessage(dashboardJobMessage, "Error posting job. Please try again.", "error");
-    }
-  });
-}
+// ── Landing job form (public) ──────────────────────────────────
+document.getElementById("landing-job-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const msgEl = document.getElementById("landing-job-message");
+  setMsg(msgEl, "Submitting…");
 
-// -----------------------------
-// Landing — post job form (public)
-// -----------------------------
-if (landingJobForm) {
-  landingJobForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+  const jobTitle       = document.getElementById("landing-job-title").value.trim();
+  const jobCategory    = document.getElementById("landing-job-category").value;
+  const jobDescription = document.getElementById("landing-job-description").value.trim();
+  const jobLocation    = document.getElementById("landing-job-location").value.trim();
+  const jobContact     = document.getElementById("landing-job-contact").value.trim();
 
-    setMessage(landingJobMessage, "Submitting…");
+  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobContact) {
+    setMsg(msgEl, "Please fill in all fields.", "err"); return;
+  }
 
-    const jobTitle       = document.getElementById("landing-job-title").value.trim();
-    const jobCategory    = document.getElementById("landing-job-category").value;
-    const jobDescription = document.getElementById("landing-job-description").value.trim();
-    const jobLocation    = document.getElementById("landing-job-location").value.trim();
-    const jobContact     = document.getElementById("landing-job-contact").value.trim();
-
-    if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobContact) {
-      setMessage(landingJobMessage, "Please fill in all fields.", "error");
-      return;
-    }
-
-    try {
-      await addDoc(collection(db, "jobs"), {
-        userId:      null,
-        jobTitle,
-        jobCategory,
-        jobDescription,
-        jobLocation,
-        jobContact,
-        createdAt: new Date(),
-      });
-
-      setMessage(landingJobMessage, "Job submitted successfully! We'll be in touch.", "success");
-      landingJobForm.reset();
-    } catch (err) {
-      console.error("Error submitting job:", err);
-      setMessage(landingJobMessage, "Error submitting job. Please try again.", "error");
-    }
-  });
-}
+  try {
+    await addDoc(collection(db, "jobs"), {
+      userId: null, jobTitle, jobCategory, jobDescription, jobLocation, jobContact,
+      createdAt: new Date(),
+    });
+    setMsg(msgEl, "Job submitted! We'll be in touch.", "ok");
+    document.getElementById("landing-job-form").reset();
+  } catch (err) {
+    console.error("Landing job error:", err);
+    setMsg(msgEl, "Error submitting job. Please try again.", "err");
+  }
+});
