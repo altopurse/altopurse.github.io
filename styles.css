@@ -231,3 +231,8 @@ footer {
   }
 }
 
+.hero p {
+  color: #e5e7eb; /* slightly darker grey */
+  font-weight: 500;
+}
+
