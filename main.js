@@ -1,12 +1,9 @@
-// main.js – core app logic for JobLeadHub
+// main.js — core app logic for JobLeadHub
+// DO NOT add Firebase config here. Auth/DB/Functions come from window globals set in firebase-init.js
 
-const auth = window.firebaseAuth;
-const db = window.firebaseDB;
-const functions = window.firebaseFunctions;
-
-// Firebase imports
 import {
   onAuthStateChanged,
+  signOut,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
 import {
@@ -23,64 +20,79 @@ import {
   httpsCallable,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
 
-// DOM references
-const landing = document.getElementById("landing");
-const dashboard = document.getElementById("dashboard");
+// -----------------------------
+// Globals from firebase-init.js
+// -----------------------------
+const auth      = window.firebaseAuth;
+const db        = window.firebaseDB;
+const functions = window.firebaseFunctions;
 
-const dashUsername = document.getElementById("dash-username");
-const dashCredits = document.getElementById("dash-credits");
+// -----------------------------
+// DOM — views
+// -----------------------------
+const landingView   = document.getElementById("landing-view");
+const dashboardView = document.getElementById("dashboard-view");
 
-const availableLeadsList = document.getElementById("available-leads-list");
-const availableLeadsMsg = document.getElementById("available-leads-message");
+// -----------------------------
+// DOM — welcome strip
+// -----------------------------
+const userUsername = document.getElementById("user-username");
+const userCredits  = document.getElementById("user-credits");
 
-const purchasedLeadsList = document.getElementById("purchased-leads-list");
-const purchasedLeadsMsg = document.getElementById("purchased-leads-message");
+// -----------------------------
+// DOM — leads
+// -----------------------------
+const leadsList    = document.getElementById("leads-list");
+const leadsEmpty   = document.getElementById("leads-empty");
 
-const myJobsList = document.getElementById("my-jobs-list");
-const myJobsMsg = document.getElementById("my-jobs-message");
+const purchasedList  = document.getElementById("purchased-list");
+const purchasedEmpty = document.getElementById("purchased-empty");
 
-const logoutBtnDash = document.getElementById("logoutBtnDash");
-const scrollToPostJobBtn = document.getElementById("scrollToPostJob");
+// -----------------------------
+// DOM — jobs
+// -----------------------------
+const jobsList  = document.getElementById("jobs-list");
+const jobsEmpty = document.getElementById("jobs-empty");
 
-// Smooth scroll from hero to landing post job
-const ctaBtn = document.getElementById("cta-post-job");
-const landingPostJobSection = document.getElementById("landing-post-job");
+// -----------------------------
+// DOM — logout buttons
+// -----------------------------
+const logoutBtn    = document.getElementById("logout-btn");      // dashboard card
+const navLogoutBtn = document.getElementById("nav-logout-btn");  // navbar
 
-if (ctaBtn && landingPostJobSection) {
-  ctaBtn.addEventListener("click", () => {
-    landingPostJobSection.scrollIntoView({ behavior: "smooth" });
-  });
+// -----------------------------
+// DOM — dashboard job form
+// -----------------------------
+const dashboardJobForm    = document.getElementById("dashboard-job-form");
+const dashboardJobMessage = document.getElementById("dashboard-job-message");
+
+// -----------------------------
+// DOM — landing job form
+// -----------------------------
+const landingJobForm    = document.getElementById("landing-job-form");
+const landingJobMessage = document.getElementById("landing-job-message");
+
+// -----------------------------
+// Helpers
+// -----------------------------
+function showView(view) {
+  if (landingView)   landingView.classList.add("hidden");
+  if (dashboardView) dashboardView.classList.add("hidden");
+  if (view)          view.classList.remove("hidden");
 }
 
-if (scrollToPostJobBtn) {
-  const postJobSection = document.getElementById("post-job");
-  scrollToPostJobBtn.addEventListener("click", () => {
-    if (postJobSection) {
-      postJobSection.scrollIntoView({ behavior: "smooth" });
-    }
-  });
-}
-
-// Logout from dashboard
-import { signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
-if (logoutBtnDash) {
-  logoutBtnDash.addEventListener("click", async () => {
-    await signOut(auth);
-    window.location.href = "index.html";
-  });
+function setMessage(el, text, type = "") {
+  if (!el) return;
+  el.textContent = text;
+  el.className   = "form-message" + (type ? ` msg-${type}` : "");
 }
 
 // -----------------------------
-// Auth state → toggle landing/dashboard + load data
+// Auth state observer
 // -----------------------------
 onAuthStateChanged(auth, async (user) => {
-  if (!landing || !dashboard) return;
-
   if (user) {
-    landing.style.display = "none";
-    dashboard.style.display = "block";
-
+    showView(dashboardView);
     await loadUserProfile(user.uid);
     await Promise.all([
       loadAvailableLeads(),
@@ -88,27 +100,36 @@ onAuthStateChanged(auth, async (user) => {
       loadMyJobs(user.uid),
     ]);
   } else {
-    landing.style.display = "block";
-    dashboard.style.display = "none";
+    showView(landingView);
   }
 });
 
 // -----------------------------
-// Load user profile (username + credits)
+// Logout
+// -----------------------------
+async function handleLogout() {
+  try {
+    await signOut(auth);
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+}
+
+if (logoutBtn)    logoutBtn.addEventListener("click", handleLogout);
+if (navLogoutBtn) navLogoutBtn.addEventListener("click", handleLogout);
+
+// -----------------------------
+// Load user profile
 // -----------------------------
 async function loadUserProfile(uid) {
   try {
-    const ref = doc(db, "users", uid);
-    const snap = await getDoc(ref);
+    const snap = await getDoc(doc(db, "users", uid));
     if (!snap.exists()) return;
 
     const data = snap.data();
-    if (dashUsername) {
-      dashUsername.textContent = `Welcome, ${data.username || "tradesperson"}`;
-    }
-    if (dashCredits) {
-      dashCredits.textContent = `Credits: ${data.credits ?? 0}`;
-    }
+    if (userUsername) userUsername.textContent = data.username || "there";
+    if (userCredits)  userCredits.textContent  = data.credits  ?? 0;
   } catch (err) {
     console.error("Error loading user profile:", err);
   }
@@ -118,46 +139,43 @@ async function loadUserProfile(uid) {
 // Load available leads
 // -----------------------------
 async function loadAvailableLeads() {
-  if (!availableLeadsList) return;
+  if (!leadsList) return;
 
-  availableLeadsList.innerHTML = "";
-  if (availableLeadsMsg) availableLeadsMsg.textContent = "";
+  leadsList.innerHTML = "";
 
   try {
-    const leadsRef = collection(db, "leads");
-    const snap = await getDocs(leadsRef);
+    const snap = await getDocs(collection(db, "leads"));
 
     if (snap.empty) {
-      availableLeadsList.innerHTML = "<p>No leads available yet.</p>";
+      if (leadsEmpty) leadsEmpty.style.display = "block";
       return;
     }
 
+    if (leadsEmpty) leadsEmpty.style.display = "none";
+
     snap.forEach((docSnap) => {
       const lead = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "lead card-small";
-      div.innerHTML = `
+      const card = document.createElement("div");
+      card.className = "lead-card";
+      card.innerHTML = `
         <h4>${lead.title || "Lead"}</h4>
         <p>${lead.description || ""}</p>
         <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
-        <p><strong>Price:</strong> ${lead.price ?? 0} credits</p>
-        <button class="btn small buy-lead-btn" data-lead-id="${docSnap.id}">
-          Buy lead
+        <p><strong>Cost:</strong> ${lead.price ?? 0} credits</p>
+        <button class="btn btn-primary btn-sm buy-lead-btn" data-lead-id="${docSnap.id}">
+          Buy Lead
         </button>
       `;
-      availableLeadsList.appendChild(div);
+      leadsList.appendChild(card);
     });
   } catch (err) {
     console.error("Error loading leads:", err);
-    if (availableLeadsMsg) {
-      availableLeadsMsg.textContent = "Error loading leads.";
-      availableLeadsMsg.className = "msg err";
-    }
+    if (leadsList) leadsList.innerHTML = "<p class='error-text'>Could not load leads. Please refresh.</p>";
   }
 }
 
 // -----------------------------
-// Buy lead with credits
+// Buy lead (event delegation)
 // -----------------------------
 document.addEventListener("click", async (e) => {
   const btn = e.target.closest(".buy-lead-btn");
@@ -172,24 +190,29 @@ document.addEventListener("click", async (e) => {
   const leadId = btn.dataset.leadId;
   if (!leadId) return;
 
+  btn.disabled    = true;
+  btn.textContent = "Processing…";
+
   try {
     const buyLead = httpsCallable(functions, "buyLeadWithCredits");
-    const result = await buyLead({ leadId });
+    const result  = await buyLead({ leadId });
 
-    if (result.data && result.data.success) {
-      alert("Lead purchased successfully.");
+    if (result.data?.success) {
       await loadUserProfile(user.uid);
       await loadPurchasedLeads(user.uid);
     } else {
-      alert("Could not unlock this lead.");
+      alert("Could not unlock this lead. Please try again.");
+      btn.disabled    = false;
+      btn.textContent = "Buy Lead";
     }
   } catch (err) {
     console.error("Error buying lead:", err);
-    if (err.code === "failed-precondition") {
-      alert("Not enough credits.");
-    } else {
-      alert("Error buying lead.");
-    }
+    alert(err.code === "failed-precondition"
+      ? "Not enough credits. Top up to continue."
+      : "Error buying lead. Please try again."
+    );
+    btn.disabled    = false;
+    btn.textContent = "Buy Lead";
   }
 });
 
@@ -197,42 +220,37 @@ document.addEventListener("click", async (e) => {
 // Load purchased leads
 // -----------------------------
 async function loadPurchasedLeads(uid) {
-  if (!purchasedLeadsList) return;
+  if (!purchasedList) return;
 
-  purchasedLeadsList.innerHTML = "";
-  if (purchasedLeadsMsg) purchasedLeadsMsg.textContent = "";
+  purchasedList.innerHTML = "";
 
-  try:
-    const q = query(
-      collection(db, "purchased"),
-      where("userId", "==", uid)
-    );
+  try {
+    const q    = query(collection(db, "purchased"), where("userId", "==", uid));
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      purchasedLeadsList.innerHTML = "<p>You have not purchased any leads yet.</p>";
+      if (purchasedEmpty) purchasedEmpty.style.display = "block";
       return;
     }
 
+    if (purchasedEmpty) purchasedEmpty.style.display = "none";
+
     snap.forEach((docSnap) => {
       const lead = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "lead card-small";
-      div.innerHTML = `
+      const card = document.createElement("div");
+      card.className = "lead-card purchased";
+      card.innerHTML = `
         <h4>${lead.title || "Lead"}</h4>
         <p>${lead.description || ""}</p>
         <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
-        <p><strong>Contact name:</strong> ${lead.contactName || "N/A"}</p>
-        <p><strong>Contact email:</strong> ${lead.contactEmail || "N/A"}</p>
+        <p><strong>Contact:</strong> ${lead.contactName || "N/A"}</p>
+        <p><strong>Email:</strong> ${lead.contactEmail || "N/A"}</p>
       `;
-      purchasedLeadsList.appendChild(div);
+      purchasedList.appendChild(card);
     });
   } catch (err) {
     console.error("Error loading purchased leads:", err);
-    if (purchasedLeadsMsg) {
-      purchasedLeadsMsg.textContent = "Error loading purchased leads.";
-      purchasedLeadsMsg.className = "msg err";
-    }
+    if (purchasedList) purchasedList.innerHTML = "<p class='error-text'>Could not load purchased leads.</p>";
   }
 }
 
@@ -240,138 +258,120 @@ async function loadPurchasedLeads(uid) {
 // Load my posted jobs
 // -----------------------------
 async function loadMyJobs(uid) {
-  if (!myJobsList) return;
+  if (!jobsList) return;
 
-  myJobsList.innerHTML = "";
-  if (myJobsMsg) myJobsMsg.textContent = "";
+  jobsList.innerHTML = "";
 
   try {
-    const q = query(
-      collection(db, "jobs"),
-      where("userId", "==", uid)
-    );
+    const q    = query(collection(db, "jobs"), where("userId", "==", uid));
     const snap = await getDocs(q);
 
     if (snap.empty) {
-      myJobsList.innerHTML = "<p>You have not posted any jobs yet.</p>";
+      if (jobsEmpty) jobsEmpty.style.display = "block";
       return;
     }
 
+    if (jobsEmpty) jobsEmpty.style.display = "none";
+
     snap.forEach((docSnap) => {
-      const job = docSnap.data();
-      const div = document.createElement("div");
-      div.className = "card-small";
-      div.innerHTML = `
-        <h4>${job.type || "Job"}</h4>
-        <p>${job.description || ""}</p>
-        <p><strong>Location:</strong> ${job.location || "N/A"}</p>
+      const job  = docSnap.data();
+      const card = document.createElement("div");
+      card.className = "job-card";
+      card.innerHTML = `
+        <h4>${job.jobTitle || "Job"}</h4>
+        <p><strong>Category:</strong> ${job.jobCategory || "N/A"}</p>
+        <p>${job.jobDescription || ""}</p>
+        <p><strong>Location:</strong> ${job.jobLocation || "N/A"}</p>
       `;
-      myJobsList.appendChild(div);
+      jobsList.appendChild(card);
     });
   } catch (err) {
     console.error("Error loading jobs:", err);
-    if (myJobsMsg) {
-      myJobsMsg.textContent = "Error loading your jobs.";
-      myJobsMsg.className = "msg err";
-    }
+    if (jobsList) jobsList.innerHTML = "<p class='error-text'>Could not load your jobs.</p>";
   }
 }
 
 // -----------------------------
-// Post job (dashboard version)
+// Dashboard — post job form
 // -----------------------------
-const jobForm = document.getElementById("job-form");
-const jobMsg = document.getElementById("job-message");
-
-if (jobForm && jobMsg) {
-  jobForm.addEventListener("submit", async (e) => {
+if (dashboardJobForm) {
+  dashboardJobForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const user = auth.currentUser;
+    if (!user) {
+      setMessage(dashboardJobMessage, "You must be signed in to post a job.", "error");
+      return;
+    }
 
-    jobMsg.textContent = "Submitting your job...";
-    jobMsg.className = "msg";
+    setMessage(dashboardJobMessage, "Submitting…");
 
-    const name = document.getElementById("client-name").value.trim();
-    const email = document.getElementById("client-email").value.trim();
-    const location = document.getElementById("client-location").value.trim();
-    const type = document.getElementById("job-type").value;
-    const description = document.getElementById("job-description").value.trim();
+    const jobTitle       = document.getElementById("dashboard-job-title").value.trim();
+    const jobCategory    = document.getElementById("dashboard-job-category").value;
+    const jobDescription = document.getElementById("dashboard-job-description").value.trim();
+    const jobLocation    = document.getElementById("dashboard-job-location").value.trim();
 
-    if (!name || !email || !location || !type || !description) {
-      jobMsg.textContent = "Please fill in all fields.";
-      jobMsg.className = "msg err";
+    if (!jobTitle || !jobCategory || !jobDescription || !jobLocation) {
+      setMessage(dashboardJobMessage, "Please fill in all fields.", "error");
       return;
     }
 
     try {
       await addDoc(collection(db, "jobs"), {
-        userId: user ? user.uid : null,
-        name,
-        email,
-        location,
-        type,
-        description,
+        userId: user.uid,
+        jobTitle,
+        jobCategory,
+        jobDescription,
+        jobLocation,
         createdAt: new Date(),
       });
 
-      jobMsg.textContent = "Job submitted successfully.";
-      jobMsg.className = "msg ok";
-      jobForm.reset();
-
-      if (user) {
-        await loadMyJobs(user.uid);
-      }
+      setMessage(dashboardJobMessage, "Job posted successfully.", "success");
+      dashboardJobForm.reset();
+      await loadMyJobs(user.uid);
     } catch (err) {
-      console.error("Error submitting job:", err);
-      jobMsg.textContent = "Error submitting job. Try again.";
-      jobMsg.className = "msg err";
+      console.error("Error posting job:", err);
+      setMessage(dashboardJobMessage, "Error posting job. Please try again.", "error");
     }
   });
 }
 
 // -----------------------------
-// Post job (landing version – public)
+// Landing — post job form (public)
 // -----------------------------
-const landingJobForm = document.getElementById("landing-job-form");
-const landingJobMsg = document.getElementById("landing-job-message");
-
-if (landingJobForm && landingJobMsg) {
+if (landingJobForm) {
   landingJobForm.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    landingJobMsg.textContent = "Submitting your job...";
-    landingJobMsg.className = "msg";
+    setMessage(landingJobMessage, "Submitting…");
 
-    const name = document.getElementById("landing-client-name").value.trim();
-    const email = document.getElementById("landing-client-email").value.trim();
-    const location = document.getElementById("landing-client-location").value.trim();
-    const type = document.getElementById("landing-job-type").value;
-    const description = document.getElementById("landing-job-description").value.trim();
+    const jobTitle       = document.getElementById("landing-job-title").value.trim();
+    const jobCategory    = document.getElementById("landing-job-category").value;
+    const jobDescription = document.getElementById("landing-job-description").value.trim();
+    const jobLocation    = document.getElementById("landing-job-location").value.trim();
+    const jobContact     = document.getElementById("landing-job-contact").value.trim();
 
-    if (!name || !email || !location || !type || !description) {
-      landingJobMsg.textContent = "Please fill in all fields.";
-      landingJobMsg.className = "msg err";
+    if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobContact) {
+      setMessage(landingJobMessage, "Please fill in all fields.", "error");
       return;
     }
 
     try {
       await addDoc(collection(db, "jobs"), {
-        userId: null,
-        name,
-        email,
-        location,
-        type,
-        description,
+        userId:      null,
+        jobTitle,
+        jobCategory,
+        jobDescription,
+        jobLocation,
+        jobContact,
         createdAt: new Date(),
       });
 
-      landingJobMsg.textContent = "Job submitted successfully.";
-      landingJobMsg.className = "msg ok";
+      setMessage(landingJobMessage, "Job submitted successfully! We'll be in touch.", "success");
       landingJobForm.reset();
     } catch (err) {
       console.error("Error submitting job:", err);
-      landingJobMsg.textContent = "Error submitting job. Try again.";
-      landingJobMsg.className = "msg err";
+      setMessage(landingJobMessage, "Error submitting job. Please try again.", "error");
     }
   });
 }
