@@ -1,1 +1,33 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Payment Successful — JobLeadHub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+  <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="navbar.js"></script>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobLeadHub</div>
+    <nav class="nav-links" id="nav-auth"></nav>
+    <div class="menu-toggle" id="menuToggle">☰</div>
+  </header>
+
+  <main>
+    <div class="card auth-card" style="text-align:center;">
+      <div style="font-size:3rem; margin-bottom:16px;">✅</div>
+      <h2>Payment Successful!</h2>
+      <p style="margin:12px 0;">Your credits have been added to your account.</p>
+      <p class="hint">It may take a few seconds to appear — refresh your dashboard if needed.</p>
+      <a href="index.html" style="display:inline-block; margin-top:20px;" class="btn-topup">
+        Go to Dashboard
+      </a>
+    </div>
+  </main>
+
+</body>
+</html>
