@@ -2,186 +2,255 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>JobLeadHub – Find Local Jobs & Verified Leads</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobLeadHub — Get Local Customers Without the Hassle</title>
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- Firebase SDK bootstrap -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
-      authDomain: "backend-for-my-web.firebaseapp.com",
-      projectId: "backend-for-my-web",
-      storageBucket: "backend-for-my-web.firebasestorage.app",
-      messagingSenderId: "401686560458",
-      appId: "1:401686560458:web:9182e39977b60e97547e33"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDB = getFirestore(app);
-    window.firebaseFunctions = getFunctions(app);
-  </script>
-
-  <script type="module" src="navbar.js"></script>
-  <script type="module" src="main.js"></script>
 </head>
-
 <body>
-  <!-- NAVBAR -->
-  <header class="navbar">
-    <div class="logo" id="logo">JobLeadHub</div>
-    <nav class="nav-links" id="nav-auth"></nav>
-    <button class="menu-toggle" id="menuToggle">☰</button>
-  </header>
 
-  <!-- DASHBOARD (shown when logged in) -->
-  <section id="dashboard" style="display:none; padding:20px; max-width:1100px; margin:0 auto;">
-    <div class="card">
-      <h2 id="dash-username">Welcome</h2>
-      <p id="dash-credits" style="font-size:1.1rem; margin-top:8px;">Credits: …</p>
+  <!-- ============================================================
+       NAVBAR
+  ============================================================ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <a href="index.html">JobLeadHub</a>
+    </div>
+    <ul class="nav-links" id="nav-links">
+      <!-- Populated by navbar.js based on auth state -->
+      <li class="nav-guest"><a href="login.html">Login</a></li>
+      <li class="nav-guest"><a href="signup.html">Sign Up</a></li>
+      <li class="nav-auth hidden"><a href="#dashboard">Dashboard</a></li>
+      <li class="nav-auth hidden"><a href="#" id="nav-logout-btn">Logout</a></li>
+    </ul>
+  </nav>
 
-      <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
-        <a href="buy-credits.html">
-          <button class="btn primary">Buy credits</button>
-        </a>
-        <button id="scrollToPostJob" class="btn secondary">Post a job</button>
-        <button id="logoutBtnDash" class="btn danger">Logout</button>
+
+  <!-- ============================================================
+       LANDING — visible when logged OUT
+  ============================================================ -->
+  <main id="landing-view">
+
+    <!-- HERO -->
+    <section id="hero">
+      <div class="hero-content">
+        <h1 class="hero-title">Get local customers without the hassle.</h1>
+        <p class="hero-subtitle">Post jobs or purchase verified leads in your area.</p>
+        <a href="#post-job-landing" class="btn btn-primary">Post a Job</a>
       </div>
-    </div>
+    </section>
 
-    <div class="grid-2" style="margin-top:20px; gap:20px;">
-      <!-- Available Leads -->
-      <section class="card">
-        <h3>Available Leads</h3>
-        <p class="hint">Buy verified leads and get full job details instantly.</p>
-        <div id="available-leads-list"></div>
-        <p id="available-leads-message" class="msg"></p>
-      </section>
-
-      <!-- Purchased Leads -->
-      <section class="card">
-        <h3>My Purchased Leads</h3>
-        <p class="hint">Leads you have already unlocked.</p>
-        <div id="purchased-leads-list"></div>
-        <p id="purchased-leads-message" class="msg"></p>
-      </section>
-    </div>
-
-    <div class="grid-2" style="margin-top:20px; gap:20px;">
-      <!-- My Posted Jobs -->
-      <section class="card">
-        <h3>My Posted Jobs</h3>
-        <div id="my-jobs-list"></div>
-        <p id="my-jobs-message" class="msg"></p>
-      </section>
-
-      <!-- Post a Job (inside dashboard too) -->
-      <section id="post-job" class="card">
-        <h3>Post a Job</h3>
-        <form id="job-form">
-          <label>
-            Your Name:
-            <input type="text" id="client-name" required />
-          </label>
-          <label>
-            Email Address:
-            <input type="email" id="client-email" required />
-          </label>
-          <label>
-            Location / Postcode:
-            <input type="text" id="client-location" required />
-          </label>
-          <label>
-            Job Type:
-            <select id="job-type" required>
-              <option value="">Select…</option>
-              <option value="gardening">Gardening</option>
+    <!-- LANDING POST JOB FORM (public) -->
+    <section id="post-job-landing">
+      <div class="container">
+        <h2>Post a Job</h2>
+        <p class="section-subtitle">Reach local tradespeople and service providers instantly.</p>
+        <form id="landing-job-form" novalidate>
+          <div class="form-group">
+            <label for="landing-job-title">Job Title</label>
+            <input
+              type="text"
+              id="landing-job-title"
+              name="jobTitle"
+              placeholder="e.g. Bathroom Renovation"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="landing-job-category">Category</label>
+            <select id="landing-job-category" name="jobCategory" required>
+              <option value="" disabled selected>Select a category</option>
               <option value="plumbing">Plumbing</option>
               <option value="electrical">Electrical</option>
+              <option value="building">Building &amp; Construction</option>
+              <option value="landscaping">Landscaping</option>
               <option value="cleaning">Cleaning</option>
               <option value="other">Other</option>
             </select>
-          </label>
-          <label>
-            Job Description:
-            <textarea id="job-description" rows="4" required></textarea>
-          </label>
-          <button type="submit" class="btn primary">Submit Job</button>
-          <p id="job-message" class="msg"></p>
+          </div>
+          <div class="form-group">
+            <label for="landing-job-description">Description</label>
+            <textarea
+              id="landing-job-description"
+              name="jobDescription"
+              rows="4"
+              placeholder="Describe the work you need done..."
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="landing-job-location">Location</label>
+            <input
+              type="text"
+              id="landing-job-location"
+              name="jobLocation"
+              placeholder="e.g. Manchester, M1"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="landing-job-contact">Your Email</label>
+            <input
+              type="email"
+              id="landing-job-contact"
+              name="jobContact"
+              placeholder="you@example.com"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary btn-full" id="landing-job-submit">
+            Submit Job
+          </button>
+          <p id="landing-job-message" class="form-message" aria-live="polite"></p>
         </form>
-      </section>
-    </div>
-  </section>
+      </div>
+    </section>
 
-  <!-- LANDING (shown when logged out) -->
-  <section id="landing">
-    <main style="max-width:900px; margin:0 auto; padding:20px;">
-      <!-- Hero -->
-      <section class="hero card">
-        <div>
-          <h1>Get local customers without the hassle.</h1>
-          <p>Post jobs or purchase verified leads in your area.</p>
-          <button id="cta-post-job" class="btn primary">Post a Job</button>
+  </main>
+
+
+  <!-- ============================================================
+       DASHBOARD — visible when logged IN
+  ============================================================ -->
+  <main id="dashboard-view" class="hidden">
+    <div class="container dashboard-container">
+
+      <!-- 1. WELCOME + CREDITS -->
+      <section id="dashboard-welcome" class="dashboard-card">
+        <div class="welcome-row">
+          <div>
+            <h2>Welcome back, <span id="user-username">there</span>!</h2>
+            <p class="welcome-sub">Here's your activity at a glance.</p>
+          </div>
+          <div class="credits-badge">
+            <span class="credits-label">Credits</span>
+            <span id="user-credits" class="credits-value">0</span>
+            <a href="buy-credits.html" class="btn btn-secondary btn-sm">Top Up</a>
+          </div>
         </div>
       </section>
 
-      <!-- Post Job (public) -->
-      <section id="landing-post-job" class="card">
-        <h2>Post a Job</h2>
-        <form id="landing-job-form">
-          <label>
-            Your Name:
-            <input type="text" id="landing-client-name" required />
-          </label>
-          <label>
-            Email Address:
-            <input type="email" id="landing-client-email" required />
-          </label>
-          <label>
-            Location / Postcode:
-            <input type="text" id="landing-client-location" required />
-          </label>
-          <label>
-            Job Type:
-            <select id="landing-job-type" required>
-              <option value="">Select…</option>
-              <option value="gardening">Gardening</option>
+      <!-- 2. AVAILABLE LEADS -->
+      <section id="available-leads" class="dashboard-card">
+        <div class="section-header">
+          <h3>Available Leads</h3>
+          <p class="section-subtitle">Purchase leads to unlock full contact details.</p>
+        </div>
+        <div id="leads-list" class="leads-grid">
+          <!-- Populated dynamically by main.js -->
+          <p class="empty-state" id="leads-empty">No leads available right now. Check back soon.</p>
+        </div>
+      </section>
+
+      <!-- 3. PURCHASED LEADS -->
+      <section id="purchased-leads" class="dashboard-card">
+        <div class="section-header">
+          <h3>Purchased Leads</h3>
+          <p class="section-subtitle">Leads you have already unlocked.</p>
+        </div>
+        <div id="purchased-list" class="leads-grid">
+          <!-- Populated dynamically by main.js -->
+          <p class="empty-state" id="purchased-empty">You haven't purchased any leads yet.</p>
+        </div>
+      </section>
+
+      <!-- 4. MY POSTED JOBS -->
+      <section id="my-posted-jobs" class="dashboard-card">
+        <div class="section-header">
+          <h3>My Posted Jobs</h3>
+          <p class="section-subtitle">Jobs you have submitted to the platform.</p>
+        </div>
+        <div id="jobs-list" class="jobs-list">
+          <!-- Populated dynamically by main.js -->
+          <p class="empty-state" id="jobs-empty">You haven't posted any jobs yet.</p>
+        </div>
+      </section>
+
+      <!-- 5. POST A JOB (dashboard version) -->
+      <section id="dashboard-post-job" class="dashboard-card">
+        <div class="section-header">
+          <h3>Post a New Job</h3>
+          <p class="section-subtitle">Fill in the details and we'll match you with local professionals.</p>
+        </div>
+        <form id="dashboard-job-form" novalidate>
+          <div class="form-group">
+            <label for="dashboard-job-title">Job Title</label>
+            <input
+              type="text"
+              id="dashboard-job-title"
+              name="jobTitle"
+              placeholder="e.g. Kitchen Refit"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="dashboard-job-category">Category</label>
+            <select id="dashboard-job-category" name="jobCategory" required>
+              <option value="" disabled selected>Select a category</option>
               <option value="plumbing">Plumbing</option>
               <option value="electrical">Electrical</option>
+              <option value="building">Building &amp; Construction</option>
+              <option value="landscaping">Landscaping</option>
               <option value="cleaning">Cleaning</option>
               <option value="other">Other</option>
             </select>
-          </label>
-          <label>
-            Job Description:
-            <textarea id="landing-job-description" rows="4" required></textarea>
-          </label>
-          <button type="submit" class="btn primary">Submit Job</button>
-          <p id="landing-job-message" class="msg"></p>
+          </div>
+          <div class="form-group">
+            <label for="dashboard-job-description">Description</label>
+            <textarea
+              id="dashboard-job-description"
+              name="jobDescription"
+              rows="4"
+              placeholder="Describe the work needed..."
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="dashboard-job-location">Location</label>
+            <input
+              type="text"
+              id="dashboard-job-location"
+              name="jobLocation"
+              placeholder="e.g. Liverpool, L1"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary" id="dashboard-job-submit">
+            Post Job
+          </button>
+          <p id="dashboard-job-message" class="form-message" aria-live="polite"></p>
         </form>
       </section>
 
-      <!-- Simple marketing section -->
-      <section class="card">
-        <h2>How it works</h2>
-        <ul>
-          <li>Post a job and receive interest from local tradespeople.</li>
-          <li>Or buy verified leads and contact customers directly.</li>
-          <li>Pay only for the leads you want.</li>
-        </ul>
+      <!-- 6. LOGOUT -->
+      <section id="dashboard-logout" class="dashboard-card logout-card">
+        <p>Finished for now?</p>
+        <button id="logout-btn" class="btn btn-danger">Logout</button>
       </section>
-    </main>
-  </section>
 
-  <footer style="text-align:center; padding:20px; font-size:0.9rem;">
-    <p>© JobLeadHub – Demo version. Not a real service yet.</p>
+    </div>
+  </main>
+
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer id="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; <span id="footer-year"></span> JobLeadHub. All rights reserved.</p>
+      <nav class="footer-links">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+        <a href="#">Contact</a>
+      </nav>
+    </div>
   </footer>
+
+
+  <!-- ============================================================
+       SCRIPTS — module only, no inline logic
+  ============================================================ -->
+  <script type="module" src="navbar.js"></script>
+  <script type="module" src="main.js"></script>
+
 </body>
 </html>
