@@ -2,103 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login – AltoPurse</title>
+  <title>Log In — JobLeadHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- 1️⃣ Firebase SIEMPRE VA PRIMERO -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
-      authDomain: "backend-for-my-web.firebaseapp.com",
-      projectId: "backend-for-my-web",
-      storageBucket: "backend-for-my-web.firebasestorage.app",
-      messagingSenderId: "401686560458",
-      appId: "1:401686560458:web:9182e39977b60e97547e33"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDB = getFirestore(app);
-    window.firebaseFunctions = getFunctions(app);
-  </script>
-
-  <!-- 2️⃣ navbar.js DESPUÉS de Firebase -->
+  <script type="module" src="firebase-init.js"></script>
   <script type="module" src="navbar.js"></script>
 </head>
-
 <body>
 
-  <!-- NAVBAR -->
   <header class="navbar">
-    <div class="logo">LeadsFinder</div>
+    <div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobLeadHub</div>
     <nav class="nav-links" id="nav-auth"></nav>
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Iniciar sesión</h2>
+    <div class="card auth-card">
+      <h2>Log in to your account</h2>
 
-      <form id="loginForm">
+      <form id="loginForm" novalidate>
         <label>
           Email
-          <input type="email" id="email" required />
+          <input type="email" id="email" placeholder="you@example.com" required />
         </label>
-
         <label>
-          Contraseña
-          <input type="password" id="password" required />
+          Password
+          <input type="password" id="password" placeholder="••••••••" required />
         </label>
-
-        <button type="submit">Entrar</button>
-        <p class="msg" id="msg"></p>
+        <button type="submit">Log In</button>
+        <p class="msg" id="msg" aria-live="polite"></p>
       </form>
 
-      <p class="hint">
-        ¿No tienes cuenta? <a href="signup.html">Crear cuenta</a>
+      <p class="hint" style="margin-top:16px;">
+        Don't have an account? <a href="signup.html">Sign up</a>
       </p>
     </div>
   </main>
 
-  <!-- 3️⃣ LOGIN LOGIC (usa la MISMA instancia global de Firebase) -->
   <script type="module">
     import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
     const auth = window.firebaseAuth;
-    const form = document.getElementById("loginForm");
-    const msg = document.getElementById("msg");
+    const msg  = document.getElementById("msg");
 
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
 
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-
-      msg.textContent = "Iniciando sesión...";
-      msg.className = "msg";
+      msg.textContent = "Signing in…";
+      msg.className   = "msg";
 
       try {
         await signInWithEmailAndPassword(auth, email, password);
-
-        msg.textContent = "Sesión iniciada";
-        msg.className = "msg ok";
-
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 800);
-
+        msg.textContent = "Signed in! Redirecting…";
+        msg.className   = "msg ok";
+        setTimeout(() => window.location.href = "index.html", 800);
       } catch (err) {
-        msg.textContent = "Error: " + err.message;
-        msg.className = "msg err";
+        msg.textContent = friendlyError(err.code);
+        msg.className   = "msg err";
       }
     });
+
+    function friendlyError(code) {
+      switch (code) {
+        case "auth/user-not-found":
+        case "auth/wrong-password":
+        case "auth/invalid-credential":
+          return "Incorrect email or password.";
+        case "auth/too-many-requests":
+          return "Too many attempts. Please try again later.";
+        default:
+          return "Sign in failed. Please try again.";
+      }
+    }
   </script>
 
 </body>
