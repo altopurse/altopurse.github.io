@@ -5,24 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JobLeadHub — Get Local Customers Without the Hassle</title>
   <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase must load before everything else -->
+  <script type="module" src="firebase-init.js"></script>
+  <script type="module" src="navbar.js"></script>
 </head>
 <body>
 
-  <!-- ============================================================
-       NAVBAR
-  ============================================================ -->
-  <nav id="navbar">
-    <div class="nav-brand">
-      <a href="index.html">JobLeadHub</a>
-    </div>
-    <ul class="nav-links" id="nav-links">
-      <!-- Populated by navbar.js based on auth state -->
-      <li class="nav-guest"><a href="login.html">Login</a></li>
-      <li class="nav-guest"><a href="signup.html">Sign Up</a></li>
-      <li class="nav-auth hidden"><a href="#dashboard">Dashboard</a></li>
-      <li class="nav-auth hidden"><a href="#" id="nav-logout-btn">Logout</a></li>
-    </ul>
-  </nav>
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo" id="logo" style="cursor:pointer" onclick="location.href='index.html'">JobLeadHub</div>
+    <nav class="nav-links" id="nav-auth"></nav>
+    <div class="menu-toggle" id="menuToggle">☰</div>
+  </header>
 
 
   <!-- ============================================================
@@ -31,78 +26,74 @@
   <main id="landing-view">
 
     <!-- HERO -->
-    <section id="hero">
-      <div class="hero-content">
-        <h1 class="hero-title">Get local customers without the hassle.</h1>
-        <p class="hero-subtitle">Post jobs or purchase verified leads in your area.</p>
-        <a href="#post-job-landing" class="btn btn-primary">Post a Job</a>
+    <section class="hero">
+      <h1>Get local customers without the hassle.</h1>
+      <p>Post jobs or purchase verified leads in your area.</p>
+      <button onclick="document.getElementById('post-job-landing').scrollIntoView({behavior:'smooth'})">
+        Post a Job
+      </button>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="card">
+      <h2>How it works</h2>
+      <div class="how-grid">
+        <div class="how-step">
+          <span class="how-num">1</span>
+          <h3>Homeowner posts a job</h3>
+          <p>A customer describes the work they need done and their location.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-num">2</span>
+          <h3>Tradesperson buys the lead</h3>
+          <p>You see the job summary and spend credits to unlock full contact details.</p>
+        </div>
+        <div class="how-step">
+          <span class="how-num">3</span>
+          <h3>Win the work</h3>
+          <p>Contact the customer directly and quote for the job.</p>
+        </div>
       </div>
     </section>
 
-    <!-- LANDING POST JOB FORM (public) -->
-    <section id="post-job-landing">
-      <div class="container">
-        <h2>Post a Job</h2>
-        <p class="section-subtitle">Reach local tradespeople and service providers instantly.</p>
-        <form id="landing-job-form" novalidate>
-          <div class="form-group">
-            <label for="landing-job-title">Job Title</label>
-            <input
-              type="text"
-              id="landing-job-title"
-              name="jobTitle"
-              placeholder="e.g. Bathroom Renovation"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="landing-job-category">Category</label>
-            <select id="landing-job-category" name="jobCategory" required>
-              <option value="" disabled selected>Select a category</option>
-              <option value="plumbing">Plumbing</option>
-              <option value="electrical">Electrical</option>
-              <option value="building">Building &amp; Construction</option>
-              <option value="landscaping">Landscaping</option>
-              <option value="cleaning">Cleaning</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="landing-job-description">Description</label>
-            <textarea
-              id="landing-job-description"
-              name="jobDescription"
-              rows="4"
-              placeholder="Describe the work you need done..."
-              required
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="landing-job-location">Location</label>
-            <input
-              type="text"
-              id="landing-job-location"
-              name="jobLocation"
-              placeholder="e.g. Manchester, M1"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="landing-job-contact">Your Email</label>
-            <input
-              type="email"
-              id="landing-job-contact"
-              name="jobContact"
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <button type="submit" class="btn btn-primary btn-full" id="landing-job-submit">
-            Submit Job
-          </button>
-          <p id="landing-job-message" class="form-message" aria-live="polite"></p>
-        </form>
-      </div>
+    <!-- LANDING POST JOB FORM -->
+    <section id="post-job-landing" class="card">
+      <h2>Post a Job</h2>
+      <p class="hint">Reach local tradespeople instantly — it's free.</p>
+
+      <form id="landing-job-form" novalidate>
+        <label>
+          Job Title
+          <input type="text" id="landing-job-title" placeholder="e.g. Bathroom Renovation" required />
+        </label>
+        <label>
+          Category
+          <select id="landing-job-category" required>
+            <option value="" disabled selected>Select a category</option>
+            <option value="plumbing">Plumbing</option>
+            <option value="electrical">Electrical</option>
+            <option value="building">Building &amp; Construction</option>
+            <option value="landscaping">Landscaping</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <label>
+          Description
+          <textarea id="landing-job-description" rows="4" placeholder="Describe the work you need done..." required></textarea>
+        </label>
+        <label>
+          Location
+          <input type="text" id="landing-job-location" placeholder="e.g. Manchester, M1" required />
+        </label>
+        <label>
+          Your Email
+          <input type="email" id="landing-job-contact" placeholder="you@example.com" required />
+        </label>
+
+        <button type="submit" id="landing-job-submit">Submit Job</button>
+        <p class="msg" id="landing-job-message" aria-live="polite"></p>
+      </form>
     </section>
 
   </main>
@@ -112,79 +103,61 @@
        DASHBOARD — visible when logged IN
   ============================================================ -->
   <main id="dashboard-view" class="hidden">
-    <div class="container dashboard-container">
+    <div style="max-width:900px; margin:auto; padding:20px;">
 
-      <!-- 1. WELCOME + CREDITS -->
-      <section id="dashboard-welcome" class="dashboard-card">
-        <div class="welcome-row">
-          <div>
-            <h2>Welcome back, <span id="user-username">there</span>!</h2>
-            <p class="welcome-sub">Here's your activity at a glance.</p>
-          </div>
-          <div class="credits-badge">
-            <span class="credits-label">Credits</span>
-            <span id="user-credits" class="credits-value">0</span>
-            <a href="buy-credits.html" class="btn btn-secondary btn-sm">Top Up</a>
-          </div>
+      <!-- Welcome + Credits -->
+      <div class="card welcome-row">
+        <div>
+          <h2>Welcome back, <span id="user-username">there</span>!</h2>
+          <p class="hint">Here's your activity at a glance.</p>
         </div>
-      </section>
+        <div class="credits-badge">
+          <span>Credits</span>
+          <strong id="user-credits">0</strong>
+          <a href="buy-credits.html" class="btn-topup">Top Up</a>
+        </div>
+      </div>
 
-      <!-- 2. AVAILABLE LEADS -->
-      <section id="available-leads" class="dashboard-card">
-        <div class="section-header">
-          <h3>Available Leads</h3>
-          <p class="section-subtitle">Purchase leads to unlock full contact details.</p>
+      <!-- Available Leads -->
+      <div class="card">
+        <h2>Available Leads</h2>
+        <p class="hint">Buy a lead to unlock full contact details.</p>
+        <div id="leads-list" class="leads">
+          <p id="leads-empty">No leads available right now. Check back soon.</p>
         </div>
-        <div id="leads-list" class="leads-grid">
-          <!-- Populated dynamically by main.js -->
-          <p class="empty-state" id="leads-empty">No leads available right now. Check back soon.</p>
-        </div>
-      </section>
+      </div>
 
-      <!-- 3. PURCHASED LEADS -->
-      <section id="purchased-leads" class="dashboard-card">
-        <div class="section-header">
-          <h3>Purchased Leads</h3>
-          <p class="section-subtitle">Leads you have already unlocked.</p>
+      <!-- Purchased Leads -->
+      <div class="card">
+        <h2>Purchased Leads</h2>
+        <p class="hint">Leads you've already unlocked.</p>
+        <div id="purchased-list" class="leads">
+          <p id="purchased-empty">You haven't purchased any leads yet.</p>
         </div>
-        <div id="purchased-list" class="leads-grid">
-          <!-- Populated dynamically by main.js -->
-          <p class="empty-state" id="purchased-empty">You haven't purchased any leads yet.</p>
-        </div>
-      </section>
+      </div>
 
-      <!-- 4. MY POSTED JOBS -->
-      <section id="my-posted-jobs" class="dashboard-card">
-        <div class="section-header">
-          <h3>My Posted Jobs</h3>
-          <p class="section-subtitle">Jobs you have submitted to the platform.</p>
+      <!-- My Posted Jobs -->
+      <div class="card">
+        <h2>My Posted Jobs</h2>
+        <p class="hint">Jobs you've submitted to the platform.</p>
+        <div id="jobs-list" class="leads">
+          <p id="jobs-empty">You haven't posted any jobs yet.</p>
         </div>
-        <div id="jobs-list" class="jobs-list">
-          <!-- Populated dynamically by main.js -->
-          <p class="empty-state" id="jobs-empty">You haven't posted any jobs yet.</p>
-        </div>
-      </section>
+      </div>
 
-      <!-- 5. POST A JOB (dashboard version) -->
-      <section id="dashboard-post-job" class="dashboard-card">
-        <div class="section-header">
-          <h3>Post a New Job</h3>
-          <p class="section-subtitle">Fill in the details and we'll match you with local professionals.</p>
-        </div>
+      <!-- Post a Job -->
+      <div class="card">
+        <h2>Post a New Job</h2>
+        <p class="hint">Fill in the details and we'll match you with local professionals.</p>
+
         <form id="dashboard-job-form" novalidate>
-          <div class="form-group">
-            <label for="dashboard-job-title">Job Title</label>
-            <input
-              type="text"
-              id="dashboard-job-title"
-              name="jobTitle"
-              placeholder="e.g. Kitchen Refit"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="dashboard-job-category">Category</label>
-            <select id="dashboard-job-category" name="jobCategory" required>
+          <label>
+            Job Title
+            <input type="text" id="dashboard-job-title" placeholder="e.g. Kitchen Refit" required />
+          </label>
+          <label>
+            Category
+            <select id="dashboard-job-category" required>
               <option value="" disabled selected>Select a category</option>
               <option value="plumbing">Plumbing</option>
               <option value="electrical">Electrical</option>
@@ -193,64 +166,42 @@
               <option value="cleaning">Cleaning</option>
               <option value="other">Other</option>
             </select>
-          </div>
-          <div class="form-group">
-            <label for="dashboard-job-description">Description</label>
-            <textarea
-              id="dashboard-job-description"
-              name="jobDescription"
-              rows="4"
-              placeholder="Describe the work needed..."
-              required
-            ></textarea>
-          </div>
-          <div class="form-group">
-            <label for="dashboard-job-location">Location</label>
-            <input
-              type="text"
-              id="dashboard-job-location"
-              name="jobLocation"
-              placeholder="e.g. Liverpool, L1"
-              required
-            />
-          </div>
-          <button type="submit" class="btn btn-primary" id="dashboard-job-submit">
-            Post Job
-          </button>
-          <p id="dashboard-job-message" class="form-message" aria-live="polite"></p>
+          </label>
+          <label>
+            Description
+            <textarea id="dashboard-job-description" rows="4" placeholder="Describe the work needed..." required></textarea>
+          </label>
+          <label>
+            Location
+            <input type="text" id="dashboard-job-location" placeholder="e.g. Liverpool, L1" required />
+          </label>
+          <button type="submit" id="dashboard-job-submit">Post Job</button>
+          <p class="msg" id="dashboard-job-message" aria-live="polite"></p>
         </form>
-      </section>
+      </div>
 
-      <!-- 6. LOGOUT -->
-      <section id="dashboard-logout" class="dashboard-card logout-card">
+      <!-- Logout -->
+      <div class="card" style="text-align:center;">
         <p>Finished for now?</p>
-        <button id="logout-btn" class="btn btn-danger">Logout</button>
-      </section>
+        <button id="logout-btn" style="background:#dc2626; margin-top:10px;">Logout</button>
+      </div>
 
     </div>
   </main>
 
 
-  <!-- ============================================================
-       FOOTER
-  ============================================================ -->
-  <footer id="site-footer">
-    <div class="container footer-inner">
-      <p>&copy; <span id="footer-year"></span> JobLeadHub. All rights reserved.</p>
-      <nav class="footer-links">
-        <a href="#">Privacy Policy</a>
-        <a href="#">Terms of Service</a>
-        <a href="#">Contact</a>
-      </nav>
-    </div>
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; <span id="footer-year"></span> JobLeadHub. All rights reserved.</p>
+    <nav>
+      <a href="#">Privacy Policy</a> &middot;
+      <a href="#">Terms of Service</a> &middot;
+      <a href="#">Contact</a>
+    </nav>
   </footer>
 
-
-  <!-- ============================================================
-       SCRIPTS — module only, no inline logic
-  ============================================================ -->
-  <script type="module" src="navbar.js"></script>
   <script type="module" src="main.js"></script>
+  <script>document.getElementById("footer-year").textContent = new Date().getFullYear();</script>
 
 </body>
 </html>
