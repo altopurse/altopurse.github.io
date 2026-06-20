@@ -2,13 +2,12 @@
 
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  collection, addDoc, getDocs, doc, getDoc, query, where,
+  collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc,
+  query, where, increment, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-import { httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
 
-const auth      = window.firebaseAuth;
-const db        = window.firebaseDB;
-const functions = window.firebaseFunctions;
+const auth = window.firebaseAuth;
+const db   = window.firebaseDB;
 
 // Views
 const landingView   = document.getElementById("landing-view");
@@ -107,22 +106,63 @@ document.addEventListener("click", async (e) => {
   btn.textContent = "Processing…";
 
   try {
-    const buyLead = httpsCallable(functions, "buyLeadWithCredits");
-    const result  = await buyLead({ leadId });
+    // Get lead details
+    const leadSnap = await getDoc(doc(db, "leads", leadId));
+    if (!leadSnap.exists()) throw new Error("Lead not found.");
+    const lead = leadSnap.data();
 
-    if (result.data?.success) {
-      await loadUserProfile(user.uid);
-      await loadPurchasedLeads(user.uid);
-    } else {
-      alert("Could not unlock this lead. Please try again.");
+    // Get user credits
+    const userSnap = await getDoc(doc(db, "users", user.uid));
+    if (!userSnap.exists()) throw new Error("User not found.");
+    const userData = userSnap.data();
+    const price = lead.price ?? 1;
+
+    if ((userData.credits ?? 0) < price) {
+      alert("Not enough credits. Top up to continue.");
       btn.disabled    = false;
       btn.textContent = "Unlock Lead";
+      return;
     }
+
+    // Check not already purchased
+    const alreadyQ = query(
+      collection(db, "purchased"),
+      where("userId", "==", user.uid),
+      where("leadId", "==", leadId)
+    );
+    const alreadySnap = await getDocs(alreadyQ);
+    if (!alreadySnap.empty) {
+      alert("You've already purchased this lead.");
+      btn.disabled    = false;
+      btn.textContent = "Unlock Lead";
+      return;
+    }
+
+    // Deduct credits
+    await updateDoc(doc(db, "users", user.uid), {
+      credits: increment(-price),
+    });
+
+    // Save to purchased
+    await addDoc(collection(db, "purchased"), {
+      userId:       user.uid,
+      leadId,
+      title:        lead.title,
+      description:  lead.description,
+      location:     lead.location,
+      contactName:  lead.contactName  || "N/A",
+      contactEmail: lead.contactEmail || "N/A",
+      contactPhone: lead.contactPhone || "N/A",
+      purchasedAt:  serverTimestamp(),
+    });
+
+    await loadUserProfile(user.uid);
+    await loadPurchasedLeads(user.uid);
+    btn.textContent = "✅ Unlocked";
+
   } catch (err) {
     console.error("Buy lead error:", err);
-    alert(err.code === "failed-precondition"
-      ? "Not enough credits. Top up to continue."
-      : "Error buying lead. Please try again.");
+    alert("Error buying lead: " + err.message);
     btn.disabled    = false;
     btn.textContent = "Unlock Lead";
   }
@@ -212,13 +252,30 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
   }
 
   try {
+    // Save to jobs collection
     await addDoc(collection(db, "jobs"), {
       userId: user.uid, jobTitle, jobCategory, jobDescription, jobLocation,
       createdAt: new Date(),
     });
+
+    // Auto-create a lead so other users can see and buy it
+    await addDoc(collection(db, "leads"), {
+      title:        jobTitle,
+      description:  jobDescription,
+      location:     jobLocation,
+      category:     jobCategory,
+      postedBy:     user.uid,
+      price:        1,
+      contactName:  "Contact via platform",
+      contactEmail: "",
+      contactPhone: "",
+      createdAt:    serverTimestamp(),
+    });
+
     setMsg(msgEl, "Job posted successfully!", "ok");
     document.getElementById("dashboard-job-form").reset();
     await loadMyJobs(user.uid);
+    await loadAvailableLeads();
   } catch (err) {
     console.error("Post job error:", err);
     setMsg(msgEl, "Error posting job. Please try again.", "err");
@@ -246,6 +303,21 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
       userId: null, jobTitle, jobCategory, jobDescription, jobLocation, jobContact,
       createdAt: new Date(),
     });
+
+    // Auto-create lead with contact info visible after purchase
+    await addDoc(collection(db, "leads"), {
+      title:        jobTitle,
+      description:  jobDescription,
+      location:     jobLocation,
+      category:     jobCategory,
+      postedBy:     null,
+      price:        1,
+      contactName:  "Customer",
+      contactEmail: jobContact,
+      contactPhone: "",
+      createdAt:    serverTimestamp(),
+    });
+
     setMsg(msgEl, "Job submitted! We'll be in touch.", "ok");
     document.getElementById("landing-job-form").reset();
   } catch (err) {
