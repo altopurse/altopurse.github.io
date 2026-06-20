@@ -18,5 +18,5 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 window.firebaseAuth      = getAuth(app);
-window.firebaseDB        = getFirestore(app);
+window.firebaseDB = getFirestore(app, "backendweblead");
 window.firebaseFunctions = getFunctions(app);
