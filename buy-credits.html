@@ -2,127 +2,125 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Buy Credits – AltoPurse</title>
+  <title>Buy Credits — JobLeadHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- 1️⃣ Firebase SIEMPRE VA PRIMERO -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
-      authDomain: "backend-for-my-web.firebaseapp.com",
-      projectId: "backend-for-my-web",
-      storageBucket: "backend-for-my-web.firebasestorage.app",
-      messagingSenderId: "401686560458",
-      appId: "1:401686560458:web:9182e39977b60e97547e33"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    window.firebaseAuth = getAuth(app);
-    window.firebaseFunctions = getFunctions(app);
-  </script>
-
-  <!-- 2️⃣ navbar.js DESPUÉS de Firebase -->
+  <script type="module" src="firebase-init.js"></script>
   <script type="module" src="navbar.js"></script>
 </head>
-
-
-
 <body>
 
-  <!-- NAVBAR -->
   <header class="navbar">
-    <div class="logo">LeadsFinder</div>
+    <div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobLeadHub</div>
     <nav class="nav-links" id="nav-auth"></nav>
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
-  <main style="max-width:900px; margin:auto; padding:20px;">
-    <h2>Buy Credits</h2>
-    <p>Select a credit package below:</p>
+  <main>
+    <div style="max-width:600px; margin:auto; padding:20px;">
+      <h2 style="margin-bottom:8px;">Buy Credits</h2>
+      <p class="hint" style="margin-bottom:20px;">
+        Credits let you unlock leads and contact customers directly.
+        Payments are processed securely via Mollie.
+      </p>
 
-    <div class="card" style="display:flex; flex-direction:column; gap:15px;">
+      <div class="card" style="display:flex; flex-direction:column; gap:14px;">
 
-      <button class="credit-btn" data-credits="10" data-amount="5">
-        ⭐ 10 Credits – £5
-      </button>
+        <button class="credit-btn" data-credits="10" data-amount="500" data-label="10 Credits — £5">
+          ⭐ 10 Credits — £5
+          <span class="credit-sub">Great for testing the platform</span>
+        </button>
 
-      <button class="credit-btn" data-credits="25" data-amount="10">
-        ⭐ 25 Credits – £10
-      </button>
+        <button class="credit-btn" data-credits="25" data-amount="1000" data-label="25 Credits — £10">
+          🔥 25 Credits — £10
+          <span class="credit-sub">Most popular</span>
+        </button>
 
-      <button class="credit-btn" data-credits="50" data-amount="20">
-        ⭐ 50 Credits – £20
-      </button>
+        <button class="credit-btn" data-credits="50" data-amount="2000" data-label="50 Credits — £20">
+          💼 50 Credits — £20
+          <span class="credit-sub">For active tradespeople</span>
+        </button>
 
-      <button class="credit-btn" data-credits="100" data-amount="35">
-        ⭐ 100 Credits – £35
-      </button>
+        <button class="credit-btn" data-credits="100" data-amount="3500" data-label="100 Credits — £35">
+          🚀 100 Credits — £35
+          <span class="credit-sub">Best value — save £15</span>
+        </button>
 
+      </div>
+
+      <p class="msg" id="msg" style="margin-top:16px;" aria-live="polite"></p>
+
+      <p class="hint" style="margin-top:12px; text-align:center;">
+        Secure payments powered by <strong>Mollie</strong>. No card details stored.
+      </p>
     </div>
-
-    <p id="msg" class="msg" style="margin-top:20px;"></p>
   </main>
 
-
-
-  <!-- BUY CREDITS LOGIC -->
   <script type="module">
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { httpsCallable } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
 
-    const auth = window.firebaseAuth;
-    const functions = window.firebaseFunctions;
-
-    const msg = document.getElementById("msg");
+    const auth    = window.firebaseAuth;
+    const msg     = document.getElementById("msg");
     const buttons = document.querySelectorAll(".credit-btn");
 
-    let userUID = null;
+    // ── YOUR EXPRESS BACKEND URL ──────────────────────────────────
+    // Change this to your deployed server URL once live.
+    // For local testing use: http://localhost:3000
+    const BACKEND_URL = "https://YOUR-SERVER-URL.com";
+    // ─────────────────────────────────────────────────────────────
+
+    let currentUser = null;
 
     onAuthStateChanged(auth, (user) => {
       if (!user) {
         msg.textContent = "You must be logged in to buy credits.";
-        msg.className = "msg err";
+        msg.className   = "msg err";
         buttons.forEach(btn => btn.disabled = true);
       } else {
-        userUID = user.uid;
+        currentUser = user;
       }
     });
 
     buttons.forEach(btn => {
       btn.addEventListener("click", async () => {
-        if (!userUID) return;
+        if (!currentUser) return;
 
-        const credits = btn.dataset.credits;
-        const amount = btn.dataset.amount;
+        const credits = Number(btn.dataset.credits);
+        const amount  = Number(btn.dataset.amount);   // in pence (e.g. 500 = £5.00)
+        const label   = btn.dataset.label;
 
-        msg.textContent = "Creating payment session...";
-        msg.className = "msg";
+        buttons.forEach(b => b.disabled = true);
+        msg.textContent = "Creating payment session…";
+        msg.className   = "msg";
 
         try {
-          const createPayment = httpsCallable(functions, "createTopUpPayment");
+          // Get a fresh Firebase ID token to authenticate the request
+          const idToken = await currentUser.getIdToken();
 
-          const res = await createPayment({
-            credits: Number(credits),
-            amount: Number(amount),
-            uid: userUID
+          const res = await fetch(`${BACKEND_URL}/create-payment`, {
+            method:  "POST",
+            headers: {
+              "Content-Type":  "application/json",
+              "Authorization": `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ credits, amount, description: label }),
           });
 
-          const url = res.data.checkoutUrl;
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Server error ${res.status}`);
+          }
 
-          msg.textContent = "Redirecting to payment...";
-          msg.className = "msg ok";
-
-          window.location.href = url;
+          const { checkoutUrl } = await res.json();
+          msg.textContent = "Redirecting to payment…";
+          msg.className   = "msg ok";
+          window.location.href = checkoutUrl;
 
         } catch (err) {
+          console.error("Payment error:", err);
           msg.textContent = "Error: " + err.message;
-          msg.className = "msg err";
+          msg.className   = "msg err";
+          buttons.forEach(b => b.disabled = false);
         }
       });
     });
