@@ -25,11 +25,57 @@ function setMsg(el, text, type = "") {
   el.className   = "msg" + (type ? ` ${type}` : "");
 }
 
+// ── Distance helpers ───────────────────────────────────────────
+function toRad(deg) { return deg * Math.PI / 180; }
+
+function distanceMiles(lat1, lon1, lat2, lon2) {
+  const R = 3958.8; // Earth radius in miles
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ── Geocode a location string → {lat, lng} ─────────────────────
+async function geocode(locationText) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}&limit=1`;
+    const res  = await fetch(url, { headers: { "Accept-Language": "en" } });
+    const data = await res.json();
+    if (data.length > 0) {
+      return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    }
+  } catch (err) {
+    console.warn("Geocode failed:", err);
+  }
+  return null;
+}
+
+// ── Get user GPS location ──────────────────────────────────────
+let userLocation = null; // { lat, lng }
+
+function getUserLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      ()    => resolve(null),
+      { timeout: 8000 }
+    );
+  });
+}
+
 // ── Auth observer ──────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     showView(dashboardView);
     await loadUserProfile(user.uid);
+
+    // Get GPS location before loading leads
+    userLocation = await getUserLocation();
+
     await Promise.all([
       loadAvailableLeads(),
       loadPurchasedLeads(user.uid),
@@ -53,7 +99,6 @@ async function loadUserProfile(uid) {
     const userRef = doc(db, "users", uid);
     let snap = await getDoc(userRef);
 
-    // Auto-create user document if it doesn't exist
     if (!snap.exists()) {
       await setDoc(userRef, {
         username:  auth.currentUser?.email?.split("@")[0] || "User",
@@ -74,26 +119,62 @@ async function loadUserProfile(uid) {
 
 // ── Available leads ────────────────────────────────────────────
 async function loadAvailableLeads() {
-  const list  = document.getElementById("leads-list");
-  const empty = document.getElementById("leads-empty");
+  const list    = document.getElementById("leads-list");
+  const empty   = document.getElementById("leads-empty");
+  const filterEl = document.getElementById("radius-filter");
   if (!list) return;
   list.innerHTML = "";
+
+  const radiusMiles = filterEl ? Number(filterEl.value) : 0;
 
   try {
     const snap = await getDocs(collection(db, "leads"));
     if (snap.empty) { if (empty) empty.style.display = "block"; return; }
+
+    let leads = [];
+    snap.forEach((docSnap) => {
+      leads.push({ id: docSnap.id, ...docSnap.data() });
+    });
+
+    // Filter by radius if we have user location and radius is set
+    if (userLocation && radiusMiles > 0) {
+      const filtered = [];
+      for (const lead of leads) {
+        // Use stored coords if available, otherwise geocode
+        let coords = lead.lat && lead.lng
+          ? { lat: lead.lat, lng: lead.lng }
+          : await geocode(lead.location || "");
+
+        if (coords) {
+          const dist = distanceMiles(userLocation.lat, userLocation.lng, coords.lat, coords.lng);
+          if (dist <= radiusMiles) {
+            filtered.push({ ...lead, _distance: Math.round(dist) });
+          }
+        } else {
+          // If we can't geocode, include it anyway
+          filtered.push({ ...lead, _distance: null });
+        }
+      }
+      leads = filtered.sort((a, b) => (a._distance ?? 999) - (b._distance ?? 999));
+    }
+
+    if (leads.length === 0) {
+      if (empty) { empty.textContent = "No leads found within that radius."; empty.style.display = "block"; }
+      return;
+    }
+
     if (empty) empty.style.display = "none";
 
-    snap.forEach((docSnap) => {
-      const lead = docSnap.data();
+    leads.forEach((lead) => {
+      const distText = lead._distance != null ? ` · ${lead._distance} mi away` : "";
       const card = document.createElement("div");
       card.className = "lead";
       card.innerHTML = `
         <h3>${lead.title || "Lead"}</h3>
         <p>${lead.description || ""}</p>
-        <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
+        <p><strong>Location:</strong> ${lead.location || "N/A"}${distText}</p>
         <p><strong>Cost:</strong> ${lead.price ?? 1} credit${(lead.price ?? 1) !== 1 ? "s" : ""}</p>
-        <button class="buy-lead-btn" data-lead-id="${docSnap.id}">Unlock Lead</button>
+        <button class="buy-lead-btn" data-lead-id="${lead.id}">Unlock Lead</button>
       `;
       list.appendChild(card);
     });
@@ -102,6 +183,9 @@ async function loadAvailableLeads() {
     list.innerHTML = "<p class='msg err'>Could not load leads. Please refresh.</p>";
   }
 }
+
+// ── Radius filter change ───────────────────────────────────────
+document.getElementById("radius-filter")?.addEventListener("change", loadAvailableLeads);
 
 // ── Buy lead (event delegation) ────────────────────────────────
 document.addEventListener("click", async (e) => {
@@ -118,12 +202,10 @@ document.addEventListener("click", async (e) => {
   btn.textContent = "Processing…";
 
   try {
-    // Get lead details
     const leadSnap = await getDoc(doc(db, "leads", leadId));
     if (!leadSnap.exists()) throw new Error("Lead not found.");
     const lead = leadSnap.data();
 
-    // Get user credits
     const userSnap = await getDoc(doc(db, "users", user.uid));
     if (!userSnap.exists()) throw new Error("User not found.");
     const userData = userSnap.data();
@@ -136,7 +218,6 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    // Check not already purchased
     const alreadyQ = query(
       collection(db, "purchased"),
       where("userId", "==", user.uid),
@@ -150,12 +231,10 @@ document.addEventListener("click", async (e) => {
       return;
     }
 
-    // Deduct credits
     await updateDoc(doc(db, "users", user.uid), {
       credits: increment(-price),
     });
 
-    // Save to purchased
     await addDoc(collection(db, "purchased"), {
       userId:       user.uid,
       leadId,
@@ -200,10 +279,10 @@ async function loadPurchasedLeads(uid) {
       card.innerHTML = `
         <h3>${lead.title || "Lead"}</h3>
         <p>${lead.description || ""}</p>
-        <p><strong>Location:</strong>  ${lead.location     || "N/A"}</p>
-        <p><strong>Name:</strong>      ${lead.contactName  || "N/A"}</p>
-        <p><strong>Email:</strong>     <a href="mailto:${lead.contactEmail}">${lead.contactEmail || "N/A"}</a></p>
-        <p><strong>Phone:</strong>     <a href="tel:${lead.contactPhone}">${lead.contactPhone || "N/A"}</a></p>
+        <p><strong>Location:</strong> ${lead.location || "N/A"}</p>
+        <p><strong>Name:</strong>     ${lead.contactName  || "N/A"}</p>
+        <p><strong>Email:</strong>    <a href="mailto:${lead.contactEmail}">${lead.contactEmail || "N/A"}</a></p>
+        <p><strong>Phone:</strong>    <a href="tel:${lead.contactPhone}">${lead.contactPhone || "N/A"}</a></p>
       `;
       list.appendChild(card);
     });
@@ -247,11 +326,10 @@ async function loadMyJobs(uid) {
 // ── Dashboard job form ─────────────────────────────────────────
 document.getElementById("dashboard-job-form")?.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const user = auth.currentUser;
+  const user  = auth.currentUser;
   const msgEl = document.getElementById("dashboard-job-message");
 
   if (!user) { setMsg(msgEl, "You must be signed in to post a job.", "err"); return; }
-
   setMsg(msgEl, "Submitting…");
 
   const jobTitle       = document.getElementById("dashboard-job-title").value.trim();
@@ -263,19 +341,23 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
     setMsg(msgEl, "Please fill in all fields.", "err"); return;
   }
 
+  // Geocode the location
+  const coords = await geocode(jobLocation);
+
   try {
-    // Save to jobs collection
     await addDoc(collection(db, "jobs"), {
       userId: user.uid, jobTitle, jobCategory, jobDescription, jobLocation,
+      lat: coords?.lat || null, lng: coords?.lng || null,
       createdAt: new Date(),
     });
 
-    // Auto-create a lead so other users can see and buy it
     await addDoc(collection(db, "leads"), {
       title:        jobTitle,
       description:  jobDescription,
       location:     jobLocation,
       category:     jobCategory,
+      lat:          coords?.lat || null,
+      lng:          coords?.lng || null,
       postedBy:     user.uid,
       price:        1,
       contactName:  "Contact via platform",
@@ -310,18 +392,22 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
     setMsg(msgEl, "Please fill in all fields.", "err"); return;
   }
 
+  const coords = await geocode(jobLocation);
+
   try {
     await addDoc(collection(db, "jobs"), {
       userId: null, jobTitle, jobCategory, jobDescription, jobLocation, jobContact,
+      lat: coords?.lat || null, lng: coords?.lng || null,
       createdAt: new Date(),
     });
 
-    // Auto-create lead with contact info visible after purchase
     await addDoc(collection(db, "leads"), {
       title:        jobTitle,
       description:  jobDescription,
       location:     jobLocation,
       category:     jobCategory,
+      lat:          coords?.lat || null,
+      lng:          coords?.lng || null,
       postedBy:     null,
       price:        1,
       contactName:  "Customer",
