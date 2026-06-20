@@ -1,57 +1,40 @@
-// navbar.js – handles navbar rendering and logout
+// navbar.js — auth-aware navbar for all pages
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
-const auth = window.firebaseAuth;
-
-const navAuth = document.getElementById("nav-auth");
-const logo = document.getElementById("logo");
+const auth       = window.firebaseAuth;
+const navAuth    = document.getElementById("nav-auth");
 const menuToggle = document.getElementById("menuToggle");
 
-function renderLoggedOutNav() {
+function renderGuest() {
+  if (!navAuth) return;
   navAuth.innerHTML = `
-    <a href="login.html" class="nav-link">Log in</a>
-    <a href="signup.html" class="nav-link">Sign up</a>
+    <a href="login.html"  class="nav-link">Log in</a>
+    <a href="signup.html" class="nav-link btn-signup">Sign up</a>
   `;
 }
 
-function renderLoggedInNav() {
+function renderUser() {
+  if (!navAuth) return;
   navAuth.innerHTML = `
-    <a href="#" class="nav-link" id="nav-dashboard-link">Dashboard</a>
-    <button id="nav-logout-btn" class="btn small danger">Logout</button>
+    <a href="index.html"      class="nav-link">Dashboard</a>
+    <a href="buy-credits.html" class="nav-link">Buy Credits</a>
+    <button id="nav-logout-btn" class="btn-logout">Logout</button>
   `;
-}
-
-if (logo) {
-  logo.addEventListener("click", () => {
-    window.location.href = "index.html";
-  });
 }
 
 if (menuToggle) {
   menuToggle.addEventListener("click", () => {
-    navAuth.classList.toggle("open");
+    navAuth?.classList.toggle("open");
   });
 }
 
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    renderLoggedInNav();
-  } else {
-    renderLoggedOutNav();
-  }
+  user ? renderUser() : renderGuest();
 });
 
 document.addEventListener("click", async (e) => {
   if (e.target.id === "nav-logout-btn") {
     await signOut(auth);
     window.location.href = "index.html";
-  }
-  if (e.target.id === "nav-dashboard-link") {
-    const dashboard = document.getElementById("dashboard");
-    const landing = document.getElementById("landing");
-    if (dashboard && landing) {
-      dashboard.scrollIntoView({ behavior: "smooth" });
-    }
   }
 });
