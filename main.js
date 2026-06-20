@@ -2,7 +2,7 @@
 
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 import {
-  collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc,
+  collection, addDoc, getDocs, doc, getDoc, setDoc, updateDoc, deleteDoc,
   query, where, increment, serverTimestamp,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
@@ -314,6 +314,9 @@ async function loadMyJobs(uid) {
         <p><strong>Category:</strong> ${job.jobCategory || "N/A"}</p>
         <p>${job.jobDescription || ""}</p>
         <p><strong>Location:</strong> ${job.jobLocation || "N/A"}</p>
+        <button class="delete-job-btn" data-job-id="${docSnap.id}" data-job-title="${job.jobTitle || ""}">
+          Delete Job
+        </button>
       `;
       list.appendChild(card);
     });
@@ -322,6 +325,48 @@ async function loadMyJobs(uid) {
     list.innerHTML = "<p class='msg err'>Could not load your jobs.</p>";
   }
 }
+
+// ── Delete job (event delegation) ─────────────────────────────
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".delete-job-btn");
+  if (!btn) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const jobId    = btn.dataset.jobId;
+  const jobTitle = btn.dataset.jobTitle;
+
+  if (!confirm(`Delete "${jobTitle}"? This will also remove it from Available Leads.`)) return;
+
+  btn.disabled    = true;
+  btn.textContent = "Deleting…";
+
+  try {
+    // Delete the job
+    await deleteDoc(doc(db, "jobs", jobId));
+
+    // Find and delete matching lead
+    const leadsQ = query(
+      collection(db, "leads"),
+      where("postedBy", "==", user.uid),
+      where("title",    "==", jobTitle)
+    );
+    const leadsSnap = await getDocs(leadsQ);
+    for (const leadDoc of leadsSnap.docs) {
+      await deleteDoc(doc(db, "leads", leadDoc.id));
+    }
+
+    await loadMyJobs(user.uid);
+    await loadAvailableLeads();
+
+  } catch (err) {
+    console.error("Delete job error:", err);
+    alert("Error deleting job: " + err.message);
+    btn.disabled    = false;
+    btn.textContent = "Delete Job";
+  }
+});
 
 // ── Dashboard job form ─────────────────────────────────────────
 document.getElementById("dashboard-job-form")?.addEventListener("submit", async (e) => {
