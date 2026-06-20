@@ -2,127 +2,122 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Sign Up – AltoPurse</title>
+  <title>Sign Up — JobLeadHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
-
-  <!-- 1️⃣ Firebase SIEMPRE VA PRIMERO -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
-    import { getFunctions } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-functions.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBbC2njj5kAfv_Vn-q8bMJBVofvBTFTtuk",
-      authDomain: "backend-for-my-web.firebaseapp.com",
-      projectId: "backend-for-my-web",
-      storageBucket: "backend-for-my-web.firebasestorage.app",
-      messagingSenderId: "401686560458",
-      appId: "1:401686560458:web:9182e39977b60e97547e33"
-    };
-
-    const app = initializeApp(firebaseConfig);
-
-    window.firebaseAuth = getAuth(app);
-    window.firebaseDB = getFirestore(app);
-    window.firebaseFunctions = getFunctions(app);
-  </script>
-
-  <!-- 2️⃣ navbar.js DESPUÉS de Firebase -->
+  <script type="module" src="firebase-init.js"></script>
   <script type="module" src="navbar.js"></script>
 </head>
-
 <body>
 
-  <!-- NAVBAR -->
   <header class="navbar">
-    <div class="logo">LeadsFinder</div>
+    <div class="logo" onclick="location.href='index.html'" style="cursor:pointer">JobLeadHub</div>
     <nav class="nav-links" id="nav-auth"></nav>
     <div class="menu-toggle" id="menuToggle">☰</div>
   </header>
 
   <main>
-    <div class="card">
-      <h2>Crear cuenta</h2>
+    <div class="card auth-card">
+      <h2>Create your account</h2>
 
-      <form id="signupForm">
+      <form id="signupForm" novalidate>
         <label>
-          Nombre de usuario
-          <input type="text" id="username" required />
+          Full Name / Username
+          <input type="text" id="username" placeholder="e.g. Dave Plumbing" required />
         </label>
-
         <label>
           Email
-          <input type="email" id="email" required />
+          <input type="email" id="email" placeholder="you@example.com" required />
         </label>
-
         <label>
-          Contraseña
-          <input type="password" id="password" required />
+          Password
+          <input type="password" id="password" placeholder="Min. 6 characters" required />
         </label>
-
         <label>
-          Número de teléfono
-          <input type="tel" id="phone" required />
+          Phone Number
+          <input type="tel" id="phone" placeholder="+44 7700 000000" required />
         </label>
-
-        <button type="submit">Crear cuenta</button>
-        <p class="msg" id="msg"></p>
+        <label>
+          Trade / Profession
+          <select id="trade">
+            <option value="">Select your trade (optional)</option>
+            <option value="plumber">Plumber</option>
+            <option value="electrician">Electrician</option>
+            <option value="builder">Builder</option>
+            <option value="landscaper">Landscaper</option>
+            <option value="cleaner">Cleaner</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+        <button type="submit">Create Account</button>
+        <p class="msg" id="msg" aria-live="polite"></p>
       </form>
 
-      <p class="hint">
-        ¿Ya tienes cuenta? <a href="login.html">Iniciar sesión</a>
+      <p class="hint" style="margin-top:16px;">
+        Already have an account? <a href="login.html">Log in</a>
       </p>
     </div>
   </main>
 
-  <!-- 3️⃣ SIGNUP LOGIC (usa la MISMA instancia global de Firebase) -->
   <script type="module">
     import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-    import { doc, setDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+    import { doc, setDoc }                    from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
     const auth = window.firebaseAuth;
-    const db = window.firebaseDB;
+    const db   = window.firebaseDB;
+    const msg  = document.getElementById("msg");
 
-    const form = document.getElementById("signupForm");
-    const msg = document.getElementById("msg");
-
-    form.addEventListener("submit", async (e) => {
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
 
       const username = document.getElementById("username").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const phone = document.getElementById("phone").value.trim();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const phone    = document.getElementById("phone").value.trim();
+      const trade    = document.getElementById("trade").value;
 
-      msg.textContent = "Creando cuenta...";
-      msg.className = "msg";
+      if (!username || !email || !password || !phone) {
+        msg.textContent = "Please fill in all required fields.";
+        msg.className   = "msg err";
+        return;
+      }
+      if (password.length < 6) {
+        msg.textContent = "Password must be at least 6 characters.";
+        msg.className   = "msg err";
+        return;
+      }
+
+      msg.textContent = "Creating account…";
+      msg.className   = "msg";
 
       try {
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCred.user.uid;
-
-        await setDoc(doc(db, "users", uid), {
-          username,
-          email,
-          phone,
-          credits: 0,
-          createdAt: new Date()
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", cred.user.uid), {
+          username, email, phone, trade,
+          credits:   0,
+          createdAt: new Date(),
         });
-
-        msg.textContent = "Cuenta creada correctamente";
-        msg.className = "msg ok";
-
-        setTimeout(() => {
-          window.location.href = "index.html";
-        }, 1000);
-
+        msg.textContent = "Account created! Redirecting…";
+        msg.className   = "msg ok";
+        setTimeout(() => window.location.href = "index.html", 1000);
       } catch (err) {
-        msg.textContent = "Error: " + err.message;
-        msg.className = "msg err";
+        msg.textContent = friendlyError(err.code);
+        msg.className   = "msg err";
       }
     });
+
+    function friendlyError(code) {
+      switch (code) {
+        case "auth/email-already-in-use":
+          return "That email is already registered. Try logging in.";
+        case "auth/invalid-email":
+          return "Please enter a valid email address.";
+        case "auth/weak-password":
+          return "Password is too weak. Use at least 6 characters.";
+        default:
+          return "Sign up failed. Please try again.";
+      }
+    }
   </script>
 
 </body>
