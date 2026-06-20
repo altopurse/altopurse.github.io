@@ -50,8 +50,20 @@ document.getElementById("logout-btn")?.addEventListener("click", handleLogout);
 // ── User profile ───────────────────────────────────────────────
 async function loadUserProfile(uid) {
   try {
-    const snap = await getDoc(doc(db, "users", uid));
-    if (!snap.exists()) return;
+    const userRef = doc(db, "users", uid);
+    let snap = await getDoc(userRef);
+
+    // Auto-create user document if it doesn't exist
+    if (!snap.exists()) {
+      await setDoc(userRef, {
+        username:  auth.currentUser?.email?.split("@")[0] || "User",
+        email:     auth.currentUser?.email || "",
+        credits:   0,
+        createdAt: serverTimestamp(),
+      });
+      snap = await getDoc(userRef);
+    }
+
     const d = snap.data();
     const el = document.getElementById("user-username");
     const cr = document.getElementById("user-credits");
