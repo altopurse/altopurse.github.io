@@ -45,3 +45,9 @@ document.querySelector(".logo").addEventListener("click", () => {
     window.location.href = "index.html";
 });
 
+document.addEventListener("click", async (e) => {
+  if (e.target.id === "logoutBtn" || e.target.id === "logoutBtnDash") {
+    await firebaseAuth.signOut();
+    window.location.href = "index.html";
+  }
+});
