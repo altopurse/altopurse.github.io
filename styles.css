@@ -297,6 +297,22 @@ button[type="submit"]:hover { background: #1d4ed8; }
 .buy-lead-btn:hover   { background: #1d4ed8; }
 .buy-lead-btn:disabled { background: #9ca3af; cursor: not-allowed; }
 
+.delete-job-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #fca5a5;
+  background: #fff;
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.delete-job-btn:hover { background: #fee2e2; }
+.delete-job-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Buy Credits buttons ──────────────────────────────────────── */
 .credit-btn {
   display: flex;
