@@ -1,53 +1,57 @@
-// navbar.js – Detecta login y actualiza la navbar
-
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+// navbar.js – handles navbar rendering and logout
 
 const auth = window.firebaseAuth;
-const db = window.firebaseDB;
 
-const nav = document.getElementById("nav-auth");
+const navAuth = document.getElementById("nav-auth");
+const logo = document.getElementById("logo");
+const menuToggle = document.getElementById("menuToggle");
 
-// Detectar login
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    // Obtener datos del usuario
-    const ref = doc(db, "users", user.uid);
-    const snap = await getDoc(ref);
+function renderLoggedOutNav() {
+  navAuth.innerHTML = `
+    <a href="login.html" class="nav-link">Log in</a>
+    <a href="signup.html" class="nav-link">Sign up</a>
+  `;
+}
 
-    let username = "User";
-    if (snap.exists()) {
-      username = snap.data().username;
-    }
+function renderLoggedInNav() {
+  navAuth.innerHTML = `
+    <a href="#" class="nav-link" id="nav-dashboard-link">Dashboard</a>
+    <button id="nav-logout-btn" class="btn small danger">Logout</button>
+  `;
+}
 
-    // Navbar cuando está logeado
-    nav.innerHTML = `
-      <span class="nav-user">Hola, ${username}</span>
-      <button id="logoutBtn" class="nav-btn">Logout</button>
-    `;
-
-    // Botón logout
-    document.getElementById("logoutBtn").addEventListener("click", async () => {
-      await signOut(auth);
-      window.location.href = "index.html";
-    });
-
-  } else {
-    // Navbar cuando NO está logeado
-    nav.innerHTML = `
-      <a href="login.html">Login</a>
-      <a href="signup.html">Sign Up</a>
-    `;
-  }
-});
-// LOGO CLICK → REDIRIGE AL INDEX
-document.querySelector(".logo").addEventListener("click", () => {
+if (logo) {
+  logo.addEventListener("click", () => {
     window.location.href = "index.html";
+  });
+}
+
+if (menuToggle) {
+  menuToggle.addEventListener("click", () => {
+    navAuth.classList.toggle("open");
+  });
+}
+
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    renderLoggedInNav();
+  } else {
+    renderLoggedOutNav();
+  }
 });
 
 document.addEventListener("click", async (e) => {
-  if (e.target.id === "logoutBtn" || e.target.id === "logoutBtnDash") {
-    await firebaseAuth.signOut();
+  if (e.target.id === "nav-logout-btn") {
+    await signOut(auth);
     window.location.href = "index.html";
+  }
+  if (e.target.id === "nav-dashboard-link") {
+    const dashboard = document.getElementById("dashboard");
+    const landing = document.getElementById("landing");
+    if (dashboard && landing) {
+      dashboard.scrollIntoView({ behavior: "smooth" });
+    }
   }
 });
