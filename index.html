@@ -120,8 +120,22 @@
 
       <!-- Available Leads -->
       <div class="card">
-        <h2>Available Leads</h2>
-        <p class="hint">Buy a lead to unlock full contact details.</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:8px;">
+          <div>
+            <h2 style="margin-bottom:2px;">Available Leads</h2>
+            <p class="hint">Buy a lead to unlock full contact details.</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <label for="radius-filter" style="font-size:0.875rem; font-weight:500; color:#374151;">Radius:</label>
+            <select id="radius-filter" style="width:auto; padding:6px 10px;">
+              <option value="0">All areas</option>
+              <option value="5">5 miles</option>
+              <option value="10">10 miles</option>
+              <option value="25">25 miles</option>
+              <option value="50">50 miles</option>
+            </select>
+          </div>
+        </div>
         <div id="leads-list" class="leads">
           <p id="leads-empty">No leads available right now. Check back soon.</p>
         </div>
