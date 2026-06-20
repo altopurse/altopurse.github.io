@@ -72,3 +72,37 @@ document.addEventListener("click", async (e) => {
         alert("Error buying lead.");
     }
 });
+// -----------------------------
+// Dashboard Logic (FINAL VERSION)
+// -----------------------------
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+
+const auth = window.firebaseAuth;
+const db = window.firebaseDB;
+
+const landing = document.getElementById("landing");
+const dashboard = document.getElementById("dashboard");
+const dashUser = document.getElementById("dash-username");
+const dashCredits = document.getElementById("dash-credits");
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    landing.style.display = "none";
+    dashboard.style.display = "block";
+
+    const ref = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      const data = snap.data();
+      dashUser.textContent = `Hola ${data.username} 👋`;
+      dashCredits.textContent = `💰 Créditos: ${data.credits}`;
+    }
+
+  } else {
+    landing.style.display = "block";
+    dashboard.style.display = "none";
+  }
+});
+
