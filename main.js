@@ -128,7 +128,8 @@ async function loadAvailableLeads() {
   const radiusMiles = filterEl ? Number(filterEl.value) : 0;
 
   try {
-    const snap = await getDocs(collection(db, "leads"));
+    const leadsQuery = query(collection(db, "leads"), where("status", "!=", "completed"));
+    const snap = await getDocs(leadsQuery);
     if (snap.empty) { if (empty) empty.style.display = "block"; return; }
 
     let leads = [];
@@ -307,16 +308,20 @@ async function loadMyJobs(uid) {
 
     snap.forEach((docSnap) => {
       const job  = docSnap.data();
+      const isCompleted = job.status === "completed";
       const card = document.createElement("div");
-      card.className = "lead";
+      card.className = "lead" + (isCompleted ? " job-completed" : "");
       card.innerHTML = `
-        <h3>${job.jobTitle || "Job"}</h3>
+        <h3>${job.jobTitle || "Job"}${isCompleted ? " <span class='completed-badge'>✅ Completed</span>" : ""}</h3>
         <p><strong>Category:</strong> ${job.jobCategory || "N/A"}</p>
         <p>${job.jobDescription || ""}</p>
         <p><strong>Location:</strong> ${job.jobLocation || "N/A"}</p>
-        <button class="delete-job-btn" data-job-id="${docSnap.id}" data-job-title="${job.jobTitle || ""}">
-          Delete Job
-        </button>
+        <div class="job-actions">
+          ${!isCompleted ? `<button class="complete-job-btn" data-job-id="${docSnap.id}" data-job-title="${job.jobTitle || ""}">Mark as Done</button>` : ""}
+          <button class="delete-job-btn" data-job-id="${docSnap.id}" data-job-title="${job.jobTitle || ""}">
+            Delete Job
+          </button>
+        </div>
       `;
       list.appendChild(card);
     });
@@ -325,6 +330,54 @@ async function loadMyJobs(uid) {
     list.innerHTML = "<p class='msg err'>Could not load your jobs.</p>";
   }
 }
+
+// ── Mark job as completed (event delegation) ───────────────────
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".complete-job-btn");
+  if (!btn) return;
+
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const jobId    = btn.dataset.jobId;
+  const jobTitle = btn.dataset.jobTitle;
+
+  if (!confirm(`Mark "${jobTitle}" as completed? It will be removed from Available Leads.`)) return;
+
+  btn.disabled    = true;
+  btn.textContent = "Saving…";
+
+  try {
+    // Mark the job completed
+    await updateDoc(doc(db, "jobs", jobId), {
+      status:      "completed",
+      completedAt: serverTimestamp(),
+    });
+
+    // Find and mark the matching lead completed too
+    const leadsQ = query(
+      collection(db, "leads"),
+      where("postedBy", "==", user.uid),
+      where("title",    "==", jobTitle)
+    );
+    const leadsSnap = await getDocs(leadsQ);
+    for (const leadDoc of leadsSnap.docs) {
+      await updateDoc(doc(db, "leads", leadDoc.id), {
+        status:      "completed",
+        completedAt: serverTimestamp(),
+      });
+    }
+
+    await loadMyJobs(user.uid);
+    await loadAvailableLeads();
+
+  } catch (err) {
+    console.error("Complete job error:", err);
+    alert("Error marking job as done: " + err.message);
+    btn.disabled    = false;
+    btn.textContent = "Mark as Done";
+  }
+});
 
 // ── Delete job (event delegation) ─────────────────────────────
 document.addEventListener("click", async (e) => {
@@ -393,6 +446,7 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
     await addDoc(collection(db, "jobs"), {
       userId: user.uid, jobTitle, jobCategory, jobDescription, jobLocation,
       lat: coords?.lat || null, lng: coords?.lng || null,
+      status: "open",
       createdAt: new Date(),
     });
 
@@ -405,6 +459,7 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
       lng:          coords?.lng || null,
       postedBy:     user.uid,
       price:        1,
+      status:       "open",
       contactName:  "Contact via platform",
       contactEmail: "",
       contactPhone: "",
@@ -443,6 +498,7 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
     await addDoc(collection(db, "jobs"), {
       userId: null, jobTitle, jobCategory, jobDescription, jobLocation, jobContact,
       lat: coords?.lat || null, lng: coords?.lng || null,
+      status: "open",
       createdAt: new Date(),
     });
 
@@ -455,6 +511,7 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
       lng:          coords?.lng || null,
       postedBy:     null,
       price:        1,
+      status:       "open",
       contactName:  "Customer",
       contactEmail: jobContact,
       contactPhone: "",
