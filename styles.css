@@ -377,3 +377,42 @@ footer nav a:hover { color: #6b7280; }
   .card { margin: 12px 12px; }
   .welcome-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* ── Job completion ───────────────────────────────────────────── */
+.job-completed {
+  opacity: 0.75;
+  border-left: 4px solid #22c55e;
+}
+
+.completed-badge {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #16a34a;
+  background: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.job-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.complete-job-btn {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.complete-job-btn:hover { background: #15803d; }
+.complete-job-btn:disabled { background: #86efac; cursor: not-allowed; }
