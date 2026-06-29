@@ -416,3 +416,62 @@ footer nav a:hover { color: #6b7280; }
 
 .complete-job-btn:hover { background: #15803d; }
 .complete-job-btn:disabled { background: #86efac; cursor: not-allowed; }
+
+/* ── Lead card — rich layout ──────────────────────────────────── */
+.lead-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+.lead-header h3 { margin: 0; }
+
+.lead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.meta-chip {
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: #f3f4f6;
+  color: #374151;
+  border-radius: 20px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.lead-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lead-price {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1d4ed8;
+}
+
+.price-val {
+  font-size: 1.25rem;
+}
+
+/* ── Freshness badges ─────────────────────────────────────────── */
+.badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.badge-fresh  { background: #fef9c3; color: #92400e; }
+.badge-today  { background: #dbeafe; color: #1e40af; }
+.badge-recent { background: #f3f4f6; color: #6b7280; }
