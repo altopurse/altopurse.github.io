@@ -9,6 +9,8 @@ import {
 const auth = window.firebaseAuth;
 const db   = window.firebaseDB;
 
+const BACKEND_URL = "https://jobleadhub-server.onrender.com";
+
 // Views
 const landingView   = document.getElementById("landing-view");
 const dashboardView = document.getElementById("dashboard-view");
@@ -118,7 +120,25 @@ async function loadUserProfile(uid) {
 }
 
 // ── Available leads ────────────────────────────────────────────
-async function loadAvailableLeads() {
+// Human-readable label maps
+const BUDGET_LABEL = {
+  "under100":   "Under £100", "100-500": "£100–£500",
+  "500-1000":   "£500–£1k",  "1000-5000": "£1k–£5k",
+  "5000-10000": "£5k–£10k",  "over10000": "£10k+",
+};
+const TIMESCALE_LABEL = {
+  asap: "⚡ ASAP", this_week: "This week",
+  this_month: "This month", flexible: "Flexible",
+};
+
+function freshnessLabel(createdAt) {
+  if (!createdAt) return "";
+  const hours = (Date.now() - createdAt.getTime()) / 36e5;
+  if (hours < 6)   return "<span class='badge badge-fresh'>🔥 New</span>";
+  if (hours < 24)  return "<span class='badge badge-today'>Today</span>";
+  if (hours < 72)  return "<span class='badge badge-recent'>Recent</span>";
+  return "";
+}
   const list    = document.getElementById("leads-list");
   const empty   = document.getElementById("leads-empty");
   const filterEl = document.getElementById("radius-filter");
@@ -167,17 +187,47 @@ async function loadAvailableLeads() {
     if (empty) empty.style.display = "none";
 
     leads.forEach((lead) => {
-      const distText = lead._distance != null ? ` · ${lead._distance} mi away` : "";
+      const distText   = lead._distance != null ? ` · ${lead._distance} mi away` : "";
+      const budgetTxt  = BUDGET_LABEL[lead.budget]       || "";
+      const timeTxt    = TIMESCALE_LABEL[lead.timescale] || "";
+      const rawDate    = lead.createdAt?.toDate ? lead.createdAt.toDate()
+                       : lead.createdAt         ? new Date(lead.createdAt) : null;
+      const freshBadge = freshnessLabel(rawDate);
+      const initPrice  = lead.price ?? 1;
+
       const card = document.createElement("div");
       card.className = "lead";
+      card.dataset.leadId = lead.id;
       card.innerHTML = `
-        <h3>${lead.title || "Lead"}</h3>
+        <div class="lead-header">
+          <h3>${lead.title || "Lead"}</h3>
+          ${freshBadge}
+        </div>
         <p>${lead.description || ""}</p>
-        <p><strong>Location:</strong> ${lead.location || "N/A"}${distText}</p>
-        <p><strong>Cost:</strong> ${lead.price ?? 1} credit${(lead.price ?? 1) !== 1 ? "s" : ""}</p>
-        <button class="buy-lead-btn" data-lead-id="${lead.id}">Unlock Lead</button>
+        <div class="lead-meta">
+          ${budgetTxt ? `<span class="meta-chip">💰 ${budgetTxt}</span>` : ""}
+          ${timeTxt   ? `<span class="meta-chip">${timeTxt}</span>`       : ""}
+          <span class="meta-chip">📍 ${lead.location || "N/A"}${distText}</span>
+        </div>
+        <div class="lead-footer">
+          <span class="lead-price" id="price-${lead.id}">
+            <span class="price-val">${initPrice}</span> credit${initPrice !== 1 ? "s" : ""}
+          </span>
+          <button class="buy-lead-btn" data-lead-id="${lead.id}">Unlock Lead</button>
+        </div>
       `;
       list.appendChild(card);
+
+      // Refresh price with age-decay asynchronously — updates both UI and Firestore
+      fetch(`${BACKEND_URL}/live-price`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ leadId: lead.id }),
+      }).then(r => r.json()).then(({ price }) => {
+        if (price == null) return;
+        const el = document.getElementById(`price-${lead.id}`);
+        if (el) el.innerHTML = `<span class="price-val">${price}</span> credit${price !== 1 ? "s" : ""}`;
+      }).catch(() => {});
     });
   } catch (err) {
     console.error("Leads error:", err);
@@ -434,17 +484,29 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
   const jobCategory    = document.getElementById("dashboard-job-category").value;
   const jobDescription = document.getElementById("dashboard-job-description").value.trim();
   const jobLocation    = document.getElementById("dashboard-job-location").value.trim();
+  const jobBudget      = document.getElementById("dashboard-job-budget").value;
+  const jobTimescale   = document.getElementById("dashboard-job-timescale").value;
 
-  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation) {
+  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobBudget || !jobTimescale) {
     setMsg(msgEl, "Please fill in all fields.", "err"); return;
   }
 
-  // Geocode the location
-  const coords = await geocode(jobLocation);
+  // Geocode and price in parallel
+  const [coords, priceRes] = await Promise.all([
+    geocode(jobLocation),
+    fetch(`${BACKEND_URL}/calculate-price`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: jobCategory, budget: jobBudget, description: jobDescription, location: jobLocation, timescale: jobTimescale }),
+    }).then(r => r.json()).catch(() => ({ price: 1 })),
+  ]);
+
+  const price = priceRes.price ?? 1;
 
   try {
     await addDoc(collection(db, "jobs"), {
       userId: user.uid, jobTitle, jobCategory, jobDescription, jobLocation,
+      jobBudget, jobTimescale,
       lat: coords?.lat || null, lng: coords?.lng || null,
       status: "open",
       createdAt: new Date(),
@@ -455,10 +517,12 @@ document.getElementById("dashboard-job-form")?.addEventListener("submit", async 
       description:  jobDescription,
       location:     jobLocation,
       category:     jobCategory,
+      budget:       jobBudget,
+      timescale:    jobTimescale,
       lat:          coords?.lat || null,
       lng:          coords?.lng || null,
       postedBy:     user.uid,
-      price:        1,
+      price,
       status:       "open",
       contactName:  "Contact via platform",
       contactEmail: "",
@@ -486,17 +550,29 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
   const jobCategory    = document.getElementById("landing-job-category").value;
   const jobDescription = document.getElementById("landing-job-description").value.trim();
   const jobLocation    = document.getElementById("landing-job-location").value.trim();
+  const jobBudget      = document.getElementById("landing-job-budget").value;
+  const jobTimescale   = document.getElementById("landing-job-timescale").value;
   const jobContact     = document.getElementById("landing-job-contact").value.trim();
 
-  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobContact) {
+  if (!jobTitle || !jobCategory || !jobDescription || !jobLocation || !jobBudget || !jobTimescale || !jobContact) {
     setMsg(msgEl, "Please fill in all fields.", "err"); return;
   }
 
-  const coords = await geocode(jobLocation);
+  const [coords, priceRes] = await Promise.all([
+    geocode(jobLocation),
+    fetch(`${BACKEND_URL}/calculate-price`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category: jobCategory, budget: jobBudget, description: jobDescription, location: jobLocation, timescale: jobTimescale }),
+    }).then(r => r.json()).catch(() => ({ price: 1 })),
+  ]);
+
+  const price = priceRes.price ?? 1;
 
   try {
     await addDoc(collection(db, "jobs"), {
       userId: null, jobTitle, jobCategory, jobDescription, jobLocation, jobContact,
+      jobBudget, jobTimescale,
       lat: coords?.lat || null, lng: coords?.lng || null,
       status: "open",
       createdAt: new Date(),
@@ -507,10 +583,12 @@ document.getElementById("landing-job-form")?.addEventListener("submit", async (e
       description:  jobDescription,
       location:     jobLocation,
       category:     jobCategory,
+      budget:       jobBudget,
+      timescale:    jobTimescale,
       lat:          coords?.lat || null,
       lng:          coords?.lng || null,
       postedBy:     null,
-      price:        1,
+      price,
       status:       "open",
       contactName:  "Customer",
       contactEmail: jobContact,
