@@ -139,6 +139,8 @@ function freshnessLabel(createdAt) {
   if (hours < 72)  return "<span class='badge badge-recent'>Recent</span>";
   return "";
 }
+
+async function loadAvailableLeads() {
   const list    = document.getElementById("leads-list");
   const empty   = document.getElementById("leads-empty");
   const filterEl = document.getElementById("radius-filter");
