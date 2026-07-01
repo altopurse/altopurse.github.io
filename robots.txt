@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://altopurse.github.io/sitemap.xml
