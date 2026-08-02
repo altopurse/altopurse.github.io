@@ -2,6 +2,14 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>
+  /* Upgrade a plaintext visit. Convenience, not a security control — see the
+     note in index.html. This page is the return from a payment, so it should
+     never be reached over http in the first place. */
+  if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+    location.replace(location.href.replace(/^http:/, 'https:'));
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Order — TUMANIC M·A·E</title>
 <meta name="theme-color" content="#0A0A0C">

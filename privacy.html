@@ -2,6 +2,13 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>
+  /* Upgrade a plaintext visit. Convenience, not a security control — see the
+     note in index.html. */
+  if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+    location.replace(location.href.replace(/^http:/, 'https:'));
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy — TUMANIC M·A·E</title>
 <meta name="description" content="What this site records, why, how long it is kept, and how to have it removed.">

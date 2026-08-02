@@ -2,6 +2,14 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>
+  /* Upgrade before the token field is ever shown. Convenience, not a security
+     control — see the note in index.html. The load-time guard below stays,
+     because this script cannot run if it has been stripped in transit. */
+  if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+    location.replace(location.href.replace(/^http:/, 'https:'));
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Admin — TUMANIC M·A·E</title>
 <meta name="robots" content="noindex, nofollow">

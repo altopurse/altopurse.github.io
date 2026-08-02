@@ -2,6 +2,17 @@
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
+<script>
+  /* Upgrade a plaintext visit before anything else loads. This is a
+     convenience, not a security control — anyone able to alter an http
+     response can also delete this script. The real fix is "Enforce HTTPS" in
+     the GitHub Pages settings, which sends a header the browser obeys on its
+     own and never asks the page. Remove this once that has been on long
+     enough that no stale http links remain. */
+  if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+    location.replace(location.href.replace(/^http:/, 'https:'));
+  }
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TUMANIC M·A·E — music, art, events</title>
 <meta name="description" content="TUMANIC: UK electronic producer and painter. Deep house, drum and bass, dubstep and hip-hop, released weekly. Original artwork, signed prints and merch.">
