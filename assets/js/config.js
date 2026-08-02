@@ -8,7 +8,7 @@ window.TUMANIC_CONFIG = {
   /* Render web service URL, e.g. 'https://tumanic-api.onrender.com'.
      Leave empty and the shop runs in offline mode: artwork and player
      still render from local JSON, buy buttons explain they are off. */
-  apiBase: '',
+  apiBase: 'https://altopurse-github-io.onrender.com',
 
   locale: 'en-GB',
   currency: 'GBP',

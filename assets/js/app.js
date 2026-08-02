@@ -175,7 +175,17 @@ async function loadShop() {
       state.artworks = live.artworks ?? [];
       state.merch = live.products ?? [];
       state.online = true;
-      applyShop({ live: true });
+
+      // The API can be running while its database is not. It says so: the
+      // catalogue falls back to `source: 'repo'`, and an order in that state
+      // is refused at the last step. Better to leave checkout visibly off
+      // than to walk someone through a delivery address that cannot be saved.
+      const canCheckout = live.source === 'firestore';
+      applyShop({ live: canCheckout });
+
+      if (!canCheckout && status) {
+        status.textContent = 'The shop is not open yet. Everything here is real, but you cannot check out.';
+      }
       return;
     } catch (err) {
       state.reason = err.name === 'AbortError' ? 'timeout' : 'unreachable';
