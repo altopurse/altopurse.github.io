@@ -246,12 +246,23 @@ a { color: inherit; }
 .topnav {
   display: flex;
   gap: clamp(0.75rem, 2.5vw, 1.75rem);
+  min-width: 0;
   font-family: var(--mono);
   font-size: 0.78rem;
   letter-spacing: 0.06em;
 }
+
+/* Below this the mark and four links no longer fit on one line. */
+@media (max-width: 540px) {
+  .topbar { gap: 0.5rem; padding-inline: 1rem; }
+  .topbar__mae { display: none; }
+  .topnav { gap: 0.7rem; font-size: 0.72rem; }
+}
 .topnav a {
+  /* Short labels like "Art" fall under the 24px target minimum on their own. */
+  min-width: 24px;
   padding: 0.3rem 0;
+  text-align: center;
   color: var(--muted);
   text-decoration: none;
   border-bottom: 1px solid transparent;
@@ -474,7 +485,7 @@ a { color: inherit; }
     font-weight: 500;
     letter-spacing: 0.42em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--accent-text);
   }
   .chapter:not(.chapter--about) .chapter__inner {
     margin-inline: 0;
@@ -564,7 +575,7 @@ a { color: inherit; }
   font-size: 0.62rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 .room__name {
   font-family: var(--display);
@@ -577,11 +588,11 @@ a { color: inherit; }
 .room__note { font-size: 0.8rem; color: var(--muted); }
 .room[aria-selected='true'] .room__note { color: color-mix(in srgb, var(--text) 75%, transparent); }
 
-.room--all { --accent: var(--muted); align-content: center; }
-.room--all[aria-selected='true'] { --accent: var(--text); }
+.room--all { --accent: var(--muted); --accent-text: var(--muted); align-content: center; }
+.room--all[aria-selected='true'] { --accent: var(--text); --accent-text: var(--text); }
 
 /* Glass room — frosted panes, cool edge light */
-.room--glass { --accent: var(--sky); }
+.room--glass { --accent: var(--sky); --accent-text: var(--sky); }
 .room--glass .room__art {
   background:
     linear-gradient(112deg,
@@ -593,8 +604,10 @@ a { color: inherit; }
     linear-gradient(180deg, #0E1620, #0A0F16);
 }
 
-/* Rage room — fractured, hazard diagonals */
-.room--rage { --accent: var(--red); }
+/* Rage room — fractured, hazard diagonals.
+   Raw red on the near-black room ground only reaches 4.15:1, so the label
+   takes the lifted red. */
+.room--rage { --accent: var(--red); --accent-text: var(--red-lift); }
 .room--rage .room__art {
   background:
     repeating-linear-gradient(45deg, rgb(0 0 0 / 0.5) 0 9px, transparent 9px 18px),
@@ -611,7 +624,7 @@ a { color: inherit; }
 }
 
 /* Padded room — quilted cells, everything muffled */
-.room--padded { --accent: #A47BE0; }
+.room--padded { --accent: var(--purple-lift); --accent-text: var(--purple-lift); }
 .room--padded .room__art {
   background-color: #171320;
   background-image:
@@ -623,7 +636,7 @@ a { color: inherit; }
 }
 
 /* Forest — canopy, shafts of warm light */
-.room--forest { --accent: #35C97B; }
+.room--forest { --accent: var(--green-lift); --accent-text: var(--green-lift); }
 .room--forest .room__art {
   background:
     linear-gradient(104deg, transparent 28%, rgb(242 196 0 / 0.11) 32% 36%, transparent 40%),
@@ -1055,7 +1068,15 @@ a { color: inherit; }
   padding: 0;
   list-style: none;
 }
-.footer__links a { color: var(--yellow); text-underline-offset: 3px; }
+/* 24px minimum touch target — these sit in a list, not in a sentence, so
+   the inline-link exemption does not apply to them. */
+.footer__links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--yellow);
+  text-underline-offset: 3px;
+}
 
 /* ══ CHECKOUT SHEET ═══════════════════════════════════════ */
 

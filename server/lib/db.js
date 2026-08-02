@@ -1,0 +1,129 @@
+/* ============================================================
+   Firestore, with a read-only fallback.
+
+   If no service account is configured the API still serves the
+   catalogue straight from the repo's data/*.json. That means Mollie
+   checkout can be tested before Firestore exists — writes just fail
+   loudly instead of silently pretending to work.
+   ============================================================ */
+
+import { readFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const dataDir = join(here, '..', '..', 'data');
+
+let firestore = null;
+export let usingFirestore = false;
+
+export async function initDb() {
+  const raw = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON?.trim();
+  if (!raw) {
+    console.warn('[db] No service account set — serving the repo JSON read-only.');
+    return;
+  }
+
+  try {
+    const { initializeApp, cert } = await import('firebase-admin/app');
+    const { getFirestore } = await import('firebase-admin/firestore');
+    const creds = JSON.parse(raw);
+    initializeApp({
+      credential: cert(creds),
+      projectId: process.env.FIRESTORE_PROJECT_ID || creds.project_id
+    });
+    firestore = getFirestore();
+    usingFirestore = true;
+    console.log('[db] Firestore connected.');
+  } catch (err) {
+    console.error('[db] Firestore init failed, falling back to repo JSON:', err.message);
+  }
+}
+
+export function db() {
+  if (!firestore) throw new Error('Firestore is not configured on this server.');
+  return firestore;
+}
+
+async function localJson(name) {
+  return JSON.parse(await readFile(join(dataDir, name), 'utf8'));
+}
+
+/* ── Catalogue reads ──────────────────────────────────────── */
+
+export async function getArtworks() {
+  if (!usingFirestore) return (await localJson('artworks.json')).artworks ?? [];
+  const snap = await firestore.collection('artworks').get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getMerch() {
+  if (!usingFirestore) return (await localJson('merch.json')).products ?? [];
+  const snap = await firestore.collection('merch').get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function getReleases() {
+  if (!usingFirestore) return await localJson('releases.json');
+  const doc = await firestore.collection('meta').doc('releases').get();
+  if (!doc.exists) return await localJson('releases.json');
+  return doc.data();
+}
+
+export async function saveReleases(payload) {
+  if (!usingFirestore) throw new Error('Cannot save releases without Firestore.');
+  await firestore.collection('meta').doc('releases').set(payload);
+}
+
+/* ── Orders ───────────────────────────────────────────────── */
+
+export async function createOrder(order) {
+  if (!usingFirestore) throw new Error('Cannot take orders without Firestore.');
+  const ref = await firestore.collection('orders').add(order);
+  return ref.id;
+}
+
+export async function updateOrder(id, patch) {
+  if (!usingFirestore) throw new Error('Cannot update orders without Firestore.');
+  await firestore.collection('orders').doc(id).set(patch, { merge: true });
+}
+
+export async function getOrder(id) {
+  if (!usingFirestore) return null;
+  const doc = await firestore.collection('orders').doc(id).get();
+  return doc.exists ? { id: doc.id, ...doc.data() } : null;
+}
+
+/**
+ * Mark an order paid and, if it was a one-of-one, mark the original sold —
+ * both in a single transaction so two simultaneous payments cannot both win.
+ * Safe to call repeatedly: Mollie retries webhooks.
+ */
+export async function settleOrder(orderId, { paymentStatus, item }) {
+  if (!usingFirestore) throw new Error('Cannot settle orders without Firestore.');
+
+  await firestore.runTransaction(async (tx) => {
+    const orderRef = firestore.collection('orders').doc(orderId);
+    const orderDoc = await tx.get(orderRef);
+    if (!orderDoc.exists) throw new Error(`Order ${orderId} is missing.`);
+    if (orderDoc.data().status === 'paid') return; // already settled
+
+    let artRef = null;
+    let artDoc = null;
+    if (paymentStatus === 'paid' && item?.unique && item.artworkId) {
+      artRef = firestore.collection('artworks').doc(item.artworkId);
+      artDoc = await tx.get(artRef); // every read must precede every write
+    }
+
+    tx.set(orderRef, {
+      status: paymentStatus,
+      settledAt: new Date().toISOString()
+    }, { merge: true });
+
+    if (artRef && artDoc?.exists) {
+      tx.set(artRef, {
+        original: { ...(artDoc.data().original ?? {}), available: false, soldAt: new Date().toISOString() }
+      }, { merge: true });
+    }
+  });
+}

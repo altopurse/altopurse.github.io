@@ -296,6 +296,15 @@ function checkout() {
   const close = () => dialog.close();
   $('#buy-close')?.addEventListener('click', close);
 
+  // Close on Escape explicitly. Most engines do this natively via the cancel
+  // event, but not all of them do, and preventDefault keeps the two paths
+  // from racing where the native one works.
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    close();
+  });
+
   // Return focus to whatever opened the dialog.
   dialog.addEventListener('close', () => {
     openerEl?.focus();
