@@ -39,6 +39,9 @@
   --purple-lift: #A47BE0;
   --green-lift:  #35C97B;
 
+  /* The artist's own Void — "a non-colour that holds all colour". */
+  --void: #1B2951;
+
   --display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
   --mono:    'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --body:    system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -773,6 +776,46 @@ a { color: inherit; }
   flex: none;
   background: var(--accent);
   transform: rotate(45deg);
+}
+
+/* ── Series statement ────────────────────────────────────── */
+
+/* The statement sits in the Void, mixed down so the swatch beside it still
+   reads as a lighter sample of the same colour. */
+.statement {
+  margin: 0;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid color-mix(in srgb, var(--void) 70%, var(--bg));
+  border-left: 3px solid var(--void);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--void) 45%, var(--bg));
+}
+.statement p {
+  margin: 0 0 1.1rem;
+  max-width: 60ch;
+  color: #DCE0EC;
+}
+.statement p:last-child { margin-bottom: 0; }
+.statement strong { color: var(--text); font-weight: 600; }
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.05rem 0.5rem 0.05rem 0.35rem;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.88em;
+  white-space: nowrap;
+}
+.swatch__chip {
+  width: 0.72em;
+  height: 0.72em;
+  flex: none;
+  border-radius: 50%;
+  background: var(--void);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.4);
 }
 
 .feature {

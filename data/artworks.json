@@ -7,20 +7,21 @@
     {
       "id": "tessellation-01",
       "title": null,
-      "workingTitle": "Untitled tessellation",
-      "year": null,
+      "workingTitle": "Untitled — Void Series",
+      "series": "Void Series",
+      "year": 2026,
       "startedOn": null,
       "finishedOn": null,
       "medium": "Acrylic on canvas",
       "dimensions": { "width": null, "height": null, "unit": "cm", "approx": "roughly 100 × 100 cm, unconfirmed" },
-      "description": "A square canvas worked entirely in flat, hand-cut triangles — no gradients, no blending, every edge painted to a line. The tessellation folds back on itself as it repeats, so it reads as one kaleidoscope from across a room and comes apart into separate facets up close. Primary red, cobalt and yellow carry the grid; magenta, purple and orange break it. A single black-and-white flame sits low and to the right, the one place the colour stops.",
+      "description": "Coordinates set blind, then ruled 3D triangles penned outward from them — precise geometry drawn into chaos. Flat acrylic, no gradients, every edge painted to a line. Red, cobalt and yellow carry the grid; magenta, purple and orange break it. The third eye sits in the bottom right corner, worked in black and white, the one place the colour stops.",
       "images": {
-        "hero": { "webp": "assets/art/canvas-full.webp", "jpg": "assets/art/canvas-full.jpg", "w640": "assets/art/canvas-full-640.webp", "w320": "assets/art/canvas-full-320.webp", "width": 1000, "height": 1000, "alt": "A square canvas covered edge to edge in flat painted triangles — red, cobalt, yellow, green, magenta, purple and orange — repeating as a kaleidoscope, with one black-and-white flame motif low on the right." },
+        "hero": { "webp": "assets/art/canvas-full.webp", "jpg": "assets/art/canvas-full.jpg", "w640": "assets/art/canvas-full-640.webp", "w320": "assets/art/canvas-full-320.webp", "width": 1000, "height": 1000, "alt": "A square canvas covered edge to edge in ruled, flat-painted triangles — red, cobalt, yellow, green, magenta, purple and orange — repeating outward as a kaleidoscope, with a black-and-white third eye in the bottom right corner." },
         "insitu": { "webp": "assets/art/canvas-insitu.webp", "w400": "assets/art/canvas-insitu-400.webp", "alt": "The same canvas hanging on a white studio wall, roughly as tall as the wall panel behind it, showing its scale." },
         "details": [
           { "webp": "assets/art/detail-fan.webp", "alt": "Close detail: a fan of cobalt and pale blue triangles opening into yellow and green." },
           { "webp": "assets/art/detail-field.webp", "alt": "Close detail: the tessellation repeating, with smaller triangles nested inside the larger ones." },
-          { "webp": "assets/art/detail-flame.webp", "alt": "Close detail: the black-and-white flame motif, the only part of the canvas without colour." }
+          { "webp": "assets/art/detail-third-eye.webp", "alt": "Close detail: the third eye in the bottom right corner, worked in black and white — the only part of the canvas without colour." }
         ]
       },
       "original": {
