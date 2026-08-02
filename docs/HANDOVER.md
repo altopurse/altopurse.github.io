@@ -162,13 +162,17 @@ by the browser before it is sent — verified by reproducing it, not by reading 
 spec. Nothing on the public site sends that header, so the bug is invisible until
 someone opens `/admin` against a deployed API.
 
-## Deploying the API — currently blocked
+## The API — live since 2 August 2026
 
-Render builds successfully, then fails with `Application exited early`, because
-the **Start Command is set to `npm install`** — it installs, exits, and takes the
-process with it.
+**`https://altopurse-github-io.onrender.com`** — named after the repo, not after
+`render.yaml`, because the service predates the blueprint. `apiBase` in
+`assets/js/config.js` points at it.
 
-In Render → Settings → Build & Deploy:
+What was wrong for two days: the **Start Command was `npm install`**, which
+installs, exits, and takes the process with it — hence `Application exited
+early`, then `Port scan timeout reached`. The Build Command was `yarn`, which
+ignores the committed `package-lock.json`. Neither was a code fault; a clean
+clone ran `npm ci` and booted throughout. The fix was two dashboard fields:
 
 | Field | Set to |
 |---|---|
@@ -176,8 +180,8 @@ In Render → Settings → Build & Deploy:
 | Build Command | `npm ci` |
 | Start Command | `node index.js` |
 
-`npm ci` matters: Render defaulted to `yarn`, which ignored the committed
-`package-lock.json` and resolved a different tree than was tested.
+The lesson worth keeping: when Render says `Application exited early`, read the
+line above it. It prints the command it actually ran, and that is the answer.
 
 Environment variables are listed in `server/.env.example`. `PUBLIC_API_URL` can
 only be set after the first deploy assigns a URL; Mollie's webhook needs it.
@@ -194,26 +198,26 @@ but orders and analytics record nothing until
 
 ## Still unknown — ask the artist, never guess into the copy
 
-1. Real prices for the original and each print size.
-2. A contact email — `privacy.html` is legally incomplete without a named
-   controller and a working address, and the About button falls back to the
-   mailing list rather than a broken mailto. **This is the last thing standing
-   between the notice and being complete under UK GDPR.**
-3. The artist's trading name, for the privacy notice.
-4. Which room each of the six releases belongs to.
-5. The track **Primary Doubt** — bassline house, 127 BPM, made alongside the
+1. Real prices for the original and each print size. Still `draftPrice: true`.
+2. Which room each of the six releases belongs to.
+3. The track **Primary Doubt** — bassline house, 127 BPM, made alongside the
    painting of the same name. Not one of the six listed releases. Unknown whether
    it is released and where it can be heard, so it is **not on the site yet**.
    Once that is known it earns a Music ↔ Art link, which nothing else on the site
    currently has.
-6. Apple Music and YouTube Music artist URLs — the icons stay hidden until these
+4. Apple Music and YouTube Music artist URLs — the icons stay hidden until these
    are in `config.js`, because a dead icon is worse than no icon.
-7. A custom domain. `tumanicmae.com` and `tumanicmae.co.uk` both looked
-   unregistered. **Do not add a CNAME file before DNS resolves** — Pages will
-   stop serving `altopurse.github.io` and serve only the custom domain, which
-   will not work yet.
+5. A custom domain. `tumanic.com` was confirmed unregistered on 2 August 2026 at
+   the registry (RDAP, not a reseller search) and is the chosen name; so are
+   `tumanic.co.uk`, `tumanic.uk`, `tumanicmae.com` and `tumanicmae.co.uk`.
+   **Do not add a CNAME file before DNS resolves** — Pages will stop serving
+   `altopurse.github.io` and serve only the custom domain, which will not work
+   yet. Cloudflare records must be **DNS-only (grey cloud)** or GitHub cannot
+   complete the ACME challenge and HTTPS never provisions.
 
-Closed on 2 August 2026: the piece's title, dimensions and dates (see Art).
+Closed on 2 August 2026: the piece's title, dimensions and dates (see Art); the
+data controller (**JobLeadHub**, trading as TUMANIC) and the contact address
+(**tumanicmae@gmail.com**), which completed `privacy.html`.
 
 ## Known open decisions
 
