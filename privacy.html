@@ -58,17 +58,32 @@
 
   <h2>Visit statistics</h2>
   <p>
-    This site counts visits. It does <strong>not</strong> use cookies, does not
-    store anything on your device, and does not build a profile of you. That is
-    why there is no consent banner — there is nothing to consent to.
+    This site counts visits. It does <strong>not</strong> use cookies and stores
+    nothing whatsoever on your device. Consent banners exist because of what
+    sites put on your device, so there is no banner here. It does not build a
+    profile of what you personally looked at either — which pages were viewed is
+    kept only as a running total across everybody.
   </p>
   <p>
-    Your IP address is never written down. To count one person visiting twice as
-    one visitor rather than two, the server makes a one-way hash of your IP
-    address, your browser's user agent, today's date and a secret. The date is
-    inside the hash, so tomorrow the same person produces a completely unrelated
-    value. Nobody, including us, can work backwards from that hash to you, and
-    there is no way to follow anyone from one day to the next.
+    Your IP address is never written down. To tell one visitor from another, the
+    server makes a one-way hash of your IP address, your browser's user agent and
+    a secret it keeps. Nobody, including us, can work backwards from that hash to
+    you or to your IP address.
+  </p>
+  <p>
+    Being straight with you about what that means: because the hash does not
+    change from day to day, the same browser on the same connection produces the
+    same value on every visit. So we can see that <em>someone</em> came back,
+    without ever knowing who they are. That is how the "unique visitors" figure
+    is counted honestly instead of counting you again each morning.
+  </p>
+  <p>
+    That stable value counts as personal data under UK GDPR, even hashed, because
+    it singles out one person across visits. It is treated accordingly: it is
+    deleted after 400 days without a visit, it is never combined with your order
+    details, it is never shared, and rotating the server's secret destroys every
+    existing value at a stroke. Still true throughout — no cookie, nothing stored
+    on your device, and no raw IP address kept anywhere.
   </p>
   <p>What is actually kept is a set of daily counts:</p>
   <ul>
@@ -137,7 +152,8 @@
   <table>
     <thead><tr><th scope="col">What</th><th scope="col">How long</th></tr></thead>
     <tbody>
-      <tr><td>Daily visitor markers (the hashes)</td><td>Deleted within two days, once the day's count is settled</td></tr>
+      <tr><td>Your visitor hash</td><td>Deleted after 400 days with no visit. Come back within that and the clock restarts</td></tr>
+      <tr><td>Daily visitor markers</td><td>Deleted within two days, once the day's count is settled</td></tr>
       <tr><td>Daily visit counts</td><td>Up to about 13 months, then deleted</td></tr>
       <tr><td>Orders and delivery details</td><td>Six years, which UK tax law requires for sales records</td></tr>
       <tr><td>Mailing list</td><td>Until you unsubscribe</td></tr>
@@ -159,8 +175,13 @@
     email and address are erased and only the anonymous transaction remains.
   </p>
   <p>
-    Visit statistics cannot be traced to you even by us, so there is nothing
-    there to find, correct or delete on request. That is the point of the design.
+    On visit statistics: the totals are anonymous and hold counts, not people, so
+    there is nothing in them to find or correct. Your visitor hash is a different
+    matter — it is personal data and you can ask us to erase it. One honest
+    limitation: we cannot match it to your name or email, because it is built only
+    from your connection and your browser, so we cannot pick yours out of the pile
+    on request. What we can do is rotate the secret behind it, which destroys every
+    visitor hash we hold, yours included. Ask and we will.
   </p>
   <p>
     Ask by writing to <a href="mailto:tumanicmae@gmail.com">tumanicmae@gmail.com</a>.

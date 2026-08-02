@@ -112,7 +112,8 @@
 
   <div class="tiles">
     <div class="tile"><span class="tile__n" id="t-views">—</span><span class="tile__k">Page views</span></div>
-    <div class="tile"><span class="tile__n" id="t-visitors">—</span><span class="tile__k">Visitors</span></div>
+    <div class="tile"><span class="tile__n" id="t-unique">—</span><span class="tile__k">Unique visitors</span></div>
+    <div class="tile"><span class="tile__n" id="t-visitors">—</span><span class="tile__k">Daily visits, summed</span></div>
     <div class="tile"><span class="tile__n" id="t-buy">—</span><span class="tile__k">Buy clicks</span></div>
     <div class="tile"><span class="tile__n" id="t-orders">—</span><span class="tile__k">Orders</span></div>
   </div>
@@ -168,10 +169,14 @@
   </div>
 
   <p class="privacy-note">
-    Counting here uses no cookies and stores no IP address. Visitor numbers come
-    from a hash that includes the date, so the same person tomorrow is an
-    unrelated value and cannot be followed between days. That is what keeps the
-    site free of a consent banner — see the <a href="../privacy.html">privacy notice</a>.
+    Counting here uses no cookies and stores no IP address, but a visitor is now
+    identified by a stable hash of their IP and browser, so the same person is
+    recognised on return visits. <strong>Unique visitors</strong> counts distinct
+    people across the range; <strong>daily visits, summed</strong> adds up the
+    by-day table, counting a returning visitor once per day. That stable hash is
+    personal data under UK GDPR — it is kept for at most 400 days and the lawful
+    basis is legitimate interests. See the
+    <a href="../privacy.html">privacy notice</a>.
   </p>
 </main>
 
@@ -239,6 +244,10 @@
       }
 
       $('#t-views').textContent = nf.format(s.totals?.pageviews ?? 0);
+      // null means the range predates the persistent visitor record — show a
+      // dash rather than a zero, which would read as "nobody came".
+      $('#t-unique').textContent = s.totals?.uniqueVisitors == null
+        ? '—' : nf.format(s.totals.uniqueVisitors);
       $('#t-visitors').textContent = nf.format(s.totals?.visitors ?? 0);
       $('#t-buy').textContent = nf.format((s.events ?? []).find(([k]) => k === 'buy_click')?.[1] ?? 0);
       $('#t-orders').textContent = nf.format(o.orders?.length ?? 0);
@@ -320,7 +329,7 @@
     msg.textContent = 'Purging…'; msg.dataset.state = '';
     try {
       const r = await api('/api/admin/purge', { method: 'POST' });
-      msg.textContent = `Deleted ${r.markersDeleted} visitor markers and ${r.purged} old daily records.`;
+      msg.textContent = `Deleted ${r.markersDeleted} daily markers, ${r.identitiesDeleted ?? 0} expired visitor ids and ${r.purged} old daily records.`;
     } catch (err) { msg.textContent = err.message; msg.dataset.state = 'error'; }
   });
 
