@@ -1,121 +1,222 @@
-# Handover prompt — TUMANIC M·A·E website
+# Handover — TUMANIC M·A·E
 
-Paste everything below into a fresh Claude Code session opened in the project folder.
+Paste everything below the line into a fresh session opened in the project
+folder. It replaces the original brief, which described a two-panel layout that
+no longer exists; that version is still in git history if you want it.
 
 ---
 
-Take over an in-progress website build. Read this whole brief before touching files.
+Take over an in-progress website build. Read this whole brief before touching
+files. Check claims against the repo before acting on them — this was accurate
+when written, not necessarily now.
 
 ## The project
 
-A site for **TUMANIC** — a UK electronic producer (deep house, drum & bass, dubstep,
-hip-hop; weekly releases) who also paints. The site plays his music and sells his
-artwork.
+A site for **TUMANIC** — a UK electronic producer (deep house, drum & bass,
+dubstep, hip-hop; weekly releases) who also paints. It plays his music and sells
+his artwork. Brand: **TUMANIC M·A·E** — Music · Art · Events.
 
-Brand name: **TUMANIC M·A·E** — Music · Art · Events. Intended domain: `tumanicmae`.
+Working folder: `C:\Users\joset\OneDrive\Desktop\newprojects\altopurse.github.io`
 
-## Structure the artist asked for
+## Where it stands
 
-A hand-drawn wireframe specifies three equal panels side by side, with a circular
-star emblem sitting on each divider between them:
+**The front end is live** at <https://altopurse.github.io> from the repo
+`altopurse/altopurse.github.io` (a GitHub Pages user site, served from the repo
+root on `main`). Every page and asset was verified returning 200 with correct
+MIME types.
 
-```
-                    TUMANIC M·A·E
+**The API is not deployed.** Render builds it but the deploy fails. See
+*Deploying the API* below — the fix is a dashboard setting, not a code change.
 
-  ┌──────────┐  ✳  ┌──────────┐  ✳  ┌──────────┐
-  │  MUSIC   │     │   ART    │     │  EVENTS  │
-  └──────────┘     └──────────┘     └──────────┘
+Because `apiBase` in `assets/js/config.js` is still empty, the site is in
+offline mode by design: artwork, player and discography render from local JSON,
+and buy buttons say checkout is offline. That is the intended fallback, not a bug.
 
-                 www.tumanicmae
-```
+## Stack — decided, do not change without asking
 
-The section names in the sketch are set vertically (rotated) inside each panel.
-Three panels, not two — earlier work in this repo assumed a two-panel
-music/art split and must be reworked to match the sketch.
+- **Front end**: static HTML/CSS/JS, no build step, GitHub Pages from repo root.
+- **API**: Node/Express in `server/`, on Render with root directory `server`.
+- **Database**: Firestore (artworks, merch, orders, analytics).
+- **Payments**: Mollie hosted checkout.
+- **Comments**: Giscus (not configured). **List**: Buttondown (not configured).
 
-## Stack (already decided, don't change without asking)
+## Repo map
 
-- **Frontend**: static HTML/CSS/JS, no build step. Deployed on GitHub Pages from the
-  repo `altopurse.github.io` (user site — serves from the repo root).
-- **Backend**: Node/Express on Render, in a `server/` subdirectory of the same repo
-  (set Render's root directory to `server`).
-- **Database**: Firestore (orders, artwork stock/availability).
-- **Payments**: Mollie hosted checkout. Backend creates the payment and returns the
-  checkout URL; a Mollie webhook marks the order paid and the original sold.
-  Prices must be computed server-side from the database, never trusted from the client.
+| Path | What it is |
+|---|---|
+| `index.html` | Whole site — gateway, Music, Art, Events, About, checkout dialog |
+| `assets/css/styles.css` | Everything visual. Colours sampled from the painting |
+| `assets/js/config.js` | Public settings — API URL, platform links. **Never a secret** |
+| `assets/js/app.js` | Data loading, room tabs, player swapping, checkout, list |
+| `assets/js/analytics.js` | Cookieless beacon |
+| `admin/index.html` | Dashboard — stats, orders, erasure, Spotify sync |
+| `privacy.html`, `robots.txt`, `thanks.html` | Privacy notice, crawl rules, post-payment page |
+| `data/*.json` | Fallback catalogue used whenever the API is unreachable |
+| `server/` | Express API |
+| `render.yaml` | Render blueprint. Does **not** reconfigure an existing service |
+| `docs/CONTENT.md` | How to add releases, artwork, events, posts |
 
-## What exists so far
+## Principles the code holds to — keep them
 
-In `C:\Users\joset\OneDrive\Desktop\newprojects\altopurse.github.io`:
+1. **The page renders before JavaScript runs.** The feature artwork, the
+   discography and the player are real markup in `index.html`. A sleeping API or
+   a failed script never costs a visitor the content. `app.js` upgrades in place.
+2. **Prices are decided server-side.** The browser sends a SKU and nothing about
+   money. `server/lib/catalogue.js` is the only place a price is resolved.
+3. **The Mollie webhook is not trusted.** Mollie posts an id; the server
+   re-fetches the payment from Mollie and rejects on an amount mismatch before
+   marking anything paid.
+4. **No secret in this repo — it is public.** Keys live in Render's environment.
+   `server/.env` is git-ignored. Verify with `git grep` across all commits before
+   any push.
+5. **Every unknown has a designed state.** Nothing says "coming soon" and nothing
+   is invented. If a fact is unknown it stays `null` and the UI says so.
 
-- `index.html` — full page markup, but built to the **old two-panel layout**. Reuse
-  the components (Spotify deck, release list, checkout dialog, footer) and rebuild
-  the layout to the three-panel sketch.
-- `assets/css/styles.css` — complete stylesheet for the old layout. The token system
-  (`:root`) is worth keeping; the grid needs redoing.
-- `assets/art/_test-full.jpg` — the painting, cropped square out of the driveway
-  photo. Rename and treat as the hero product shot.
-- `assets/art/_test-insitu.jpg` — the painting hung on the studio wall, shows scale.
+## Layout
 
-**`index.html` references `assets/js/config.js` and `assets/js/app.js`, which do not
-exist yet.** Nothing has been committed, and no git repo has been initialised.
+The artist's wireframe (`docs/wireframe.webp`): title, three equal panels with a
+circled six-point asterisk and a circled pentagram on the dividers, names set
+vertically, URL beneath.
 
-## Source media (not yet in the repo)
+Built as a 100svh gateway opening into three full-width sections, each keeping
+its rotated name as a sticky spine above 1180px. **The three panels stay side by
+side at every width, phone included** — vertical names are what make a narrow
+column work, and collapsing to a stack loses the drawing. Do not "fix" that.
 
-- `C:\Users\joset\Downloads\WhatsApp Image 2026-08-02 at 14.38.40.jpeg` — 1200×1600,
-  the painting leaning against a car. The canvas occupies roughly x 103–1120,
-  y 368–1392; that crop is what produced `_test-full.jpg`.
-- `C:\Users\joset\Downloads\WhatsApp Image 2026-08-01 at 21.33.17.jpeg` — 899×1599,
-  the painting on the studio wall.
-- `C:\Users\joset\Downloads\WhatsApp Video 2026-08-02 at 14.38.41.mp4` — 19 s,
-  478×850, a slow pan across the painting. Good source for detail crops; the
-  strongest frames are the black-and-white flame/eye motif near the lower right and
-  the blue/green fan in the upper left. ffmpeg is installed and on PATH.
+Section accents: Music yellow, Art red, Events purple. Each has a lifted
+`--accent-text` variant because raw red and purple fail 4.5:1 on near-black.
+`--void: #1B2951` is the artist's own colour, currently used only behind the
+series statement.
 
-Produce web-sized derivatives (hero, in-situ, 2–3 details) into `assets/art/`.
-Original files stay out of the repo.
+## Music
 
-## The artwork
+Four rooms — Glass (house), Rage (drum & bass), Padded (dubstep), Forest
+(hip-hop) — built as pure CSS environments, wired as a tablist with roving
+tabindex. Selecting one swaps the Spotify embed to that room's playlist and
+updates the label, outbound link and iframe title.
 
-One piece so far: a large square canvas, hand-painted acrylic, a kaleidoscopic
-tessellation of flat triangles in primaries plus magenta, purple and orange, with one
-black-and-white flame motif breaking the colour. Build the shop data-driven (an array
-of pieces in `data/artworks.json`, later served from Firestore) so more work drops in
-later, but make this piece the feature — a lone card in a grid looks like a mistake.
+Playlist ids were confirmed against Spotify's oembed titles, **not** the order
+they were sent in — three of four did not match that order. If more arrive,
+verify the same way.
 
-Sell the original as one-of-one, plus signed numbered prints in two or three sizes.
+Releases: Evisceration (2026, latest), Tu Witchy, trap$hitty, Smack Me Up (all
+2026), Bel Mercy (2022, most played, ~172k), Glorifying Addictions (2022). Every
+`genre` in `data/releases.json` is still `null`, so the rooms filter to nothing
+and the page explains why. Per-track BPM, key and track ids are **not known** —
+do not fabricate them.
 
-## Music — real data, do not invent more
+## Art
 
-Spotify artist ID `5AhJwuhl8vQJB0rBqZ7UFI`. Use the artist embed player.
+One piece: **Void Series, 2026**, acrylic on canvas, roughly 1 m square
+(unconfirmed). The artist's statement is on the page in his own words. The
+black-and-white motif bottom right is **the third eye** — an earlier version
+wrongly called it a flame; do not reintroduce that.
 
-Releases: Evisceration (2026, latest), Tu Witchy (2026), trap$hitty (2026),
-Smack Me Up (2026), Bel Mercy (2022, most played, ~172k streams),
-Glorifying Addictions (2022). Bio line: "UK EDM producer | Deep House / Drum & Bass /
-Dubstep / Hip-Hop | Weekly Releases".
+Sold as a one-of-one original plus A3/A2/A1 signed prints. Merch (hoodie, tee,
+flat peak) is modelled and rendered but switched off pending a print partner.
+All prices are drafts, flagged `draftPrice: true`, and the page says so.
 
-Per-track BPM, key and individual track IDs are **not known** — don't fabricate them.
+Best available image resolution is ~1000 px square, cropped from a photo of the
+canvas against a car. A proper straight-on photo would lift the whole section.
 
-## Unknowns — ask the artist, don't guess into the copy
+## Analytics — read before changing anything
 
-1. Prices for the original and each print size.
-2. The canvas's actual dimensions (it looks about 1 m square, unconfirmed).
-3. The painting's title, if it has one, and the year.
-4. Contact email for commissions and order receipts.
-5. Whether a Mollie account exists yet, and the test/live API keys.
-6. What goes in the **Events** panel — gigs, dates, ticket links? There is no content
-   for it yet. Design an empty state that reads as deliberate, not broken.
+No cookies, no localStorage, no fingerprinting, so **no consent banner**. That is
+a design property, not a coincidence — do not add anything that stores on the
+device without saying so loudly.
+
+Visitors are counted by a one-way hash of IP + user agent + **today's date** + a
+secret. The date inside the hash means the same person tomorrow is an unrelated
+value. Raw IPs are never stored. `Sec-GPC` and `Do Not Track` stop collection in
+the browser and again on the server. Referrers are cut to a hostname.
+
+The beacon posts `text/plain` **deliberately** — `application/json` triggers a
+CORS preflight that `sendBeacon` cannot perform, so it fails silently
+cross-origin. Do not "tidy" that to JSON.
+
+Erasure keeps the sale and removes the person: UK tax rules require six years of
+sales records, so deleting an order outright trades one legal problem for another.
+
+`/admin/` is behind `ADMIN_TOKEN` with a constant-time compare, held in
+`sessionStorage` for one tab. `noindex` and `robots.txt` are tidiness, not
+security.
+
+## Deploying the API — currently blocked
+
+Render builds successfully, then fails with `Application exited early`, because
+the **Start Command is set to `npm install`** — it installs, exits, and takes the
+process with it.
+
+In Render → Settings → Build & Deploy:
+
+| Field | Set to |
+|---|---|
+| Root Directory | `server` |
+| Build Command | `npm ci` |
+| Start Command | `node index.js` |
+
+`npm ci` matters: Render defaulted to `yarn`, which ignored the committed
+`package-lock.json` and resolved a different tree than was tested.
+
+Environment variables are listed in `server/.env.example`. `PUBLIC_API_URL` can
+only be set after the first deploy assigns a URL; Mollie's webhook needs it.
+
+A clean clone of the repo runs `npm ci` and boots successfully, so the code is
+not the fault. Verify that yourself before assuming otherwise.
+
+Once it is up: set `apiBase` in `assets/js/config.js` to the Render URL, commit,
+push. That single line turns on the shop, the admin and the mailing list.
+
+Firestore is separate: the API runs without it, serving the repo JSON read-only,
+but orders and analytics record nothing until
+`GOOGLE_APPLICATION_CREDENTIALS_JSON` is set and `npm run seed` has run once.
+
+## Still unknown — ask the artist, never guess into the copy
+
+1. Real prices for the original and each print size.
+2. The canvas's actual dimensions, and its start/finish dates.
+3. Whether the piece has its own title, or whether "Void Series" is the whole name.
+4. A contact email — `privacy.html` is legally incomplete without a named
+   controller and a working address, and the About button falls back to the
+   mailing list rather than a broken mailto.
+5. The artist's trading name, for the privacy notice.
+6. Which room each of the six releases belongs to.
+7. Apple Music and YouTube Music artist URLs — the icons stay hidden until these
+   are in `config.js`, because a dead icon is worse than no icon.
+8. A custom domain. `tumanicmae.com` and `tumanicmae.co.uk` both looked
+   unregistered. **Do not add a CNAME file before DNS resolves** — Pages will
+   stop serving `altopurse.github.io` and serve only the custom domain, which
+   will not work yet.
+
+## Known open decisions
+
+- **The Spotify embed sets third-party cookies.** Our analytics need no consent;
+  that iframe technically does. Stated plainly in `privacy.html`. The clean fix
+  is click-to-load, which puts a click in front of the main feature — undecided.
+- **Whether `#1B2951` should become the whole site's ground** rather than just
+  the statement's. If it does, `--purple-lift` drops to 4.35:1 and needs nudging.
+- **Merch fulfilment** — print on demand was chosen; no account exists yet.
 
 ## Standards
 
 - Sentence case, second person, active voice. No exclamation marks, no "simply".
-- Visible `:focus-visible` on every control; the checkout dialog traps Tab, closes on
-  Escape and returns focus to the button that opened it.
-- Honour `prefers-reduced-motion`; animate transform/opacity only.
-- `Intl.NumberFormat` for prices, `font-variant-numeric: tabular-nums` in columns.
+- Visible `:focus-visible` on every control. Dialogs trap Tab, close on Escape
+  and return focus to the opener. Escape is handled explicitly because not every
+  engine fires the native `cancel` event.
+- Honour `prefers-reduced-motion`; animate transform and opacity only.
+- `Intl.NumberFormat` for money, `Intl.DateTimeFormat` for dates,
+  `font-variant-numeric: tabular-nums` in columns.
+- Headings run h1 → h4 with no gaps. Interactive targets at least 24×24, except
+  links inline in a sentence.
 - Design the empty, long-string and error states before the happy path.
-- The site must still render the artwork and the player if the backend is down —
-  fall back to the local JSON and explain, in the buy button, that checkout is offline.
+- **Verify, then claim.** Measure contrast and layout in a browser rather than
+  computing by hand — doing exactly that caught a spine at 2.68:1 and a top bar
+  overflowing at 360px. State plainly what was checked and what was not.
 
-Start by reading `index.html` and `assets/css/styles.css`, then propose the
-three-panel layout before writing code.
+## Environment
+
+Windows 11, PowerShell 5.1. The Bash tool does not work here. No `&&`, no
+ternary. **Do not pass multi-line commit messages as here-strings to git** — PS
+5.1 re-tokenises embedded double quotes and mangles them. Write the message to a
+file and use `git commit -F`. Never bulk-edit source with
+`Get-Content`/`Set-Content`; it double-encodes em dashes and curly quotes.
