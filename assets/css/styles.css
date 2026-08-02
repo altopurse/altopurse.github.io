@@ -895,7 +895,12 @@ a { color: inherit; }
   text-wrap: balance;
 }
 
-.feature__desc { margin: 0 0 1.75rem; max-width: 52ch; color: var(--muted); }
+.feature__desc { margin: 0 0 1rem; max-width: 52ch; color: var(--muted); }
+/* Only the paragraph that meets the specs list carries the larger block gap,
+   so the space between description paragraphs stays tighter. Matched on the
+   following sibling rather than :last-of-type — the draft-price note after
+   the buy list is also a <p>, and would otherwise win. */
+.feature__desc:has(+ .specs) { margin-bottom: 1.75rem; }
 
 .specs {
   margin: 0 0 2rem;

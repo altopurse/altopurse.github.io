@@ -166,8 +166,12 @@ export async function purge({ keepDays = 400, keepVisitorDays = 2 } = {}) {
   const all = await store.collection('analytics_daily').get();
   for (const doc of all.docs) {
     if (doc.id < markerCutoff) {
-      const markers = await doc.ref.collection('visitors').limit(500).get();
-      while (!markers.empty) {
+      // Re-query every pass. Reusing one snapshot would keep re-deleting the
+      // same 500 docs and never terminate on a day that busy, which would also
+      // strand the markers the privacy notice promises to delete within 2 days.
+      for (;;) {
+        const markers = await doc.ref.collection('visitors').limit(500).get();
+        if (markers.empty) break;
         const batch = store.batch();
         markers.docs.forEach((m) => batch.delete(m.ref));
         await batch.commit();

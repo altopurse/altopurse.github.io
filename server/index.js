@@ -46,8 +46,12 @@ app.use((req, res, next) => {
   if (origin && allowed.has(origin)) {
     res.set('Access-Control-Allow-Origin', origin);
     res.set('Vary', 'Origin');
-    res.set('Access-Control-Allow-Headers', 'content-type');
+    // x-admin-token has to be listed here or the browser rejects every /admin
+    // call before it is sent: a custom header forces a preflight, and the
+    // preflight only permits headers this list names.
+    res.set('Access-Control-Allow-Headers', 'content-type, x-admin-token');
     res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.set('Access-Control-Max-Age', '600');
   }
   if (req.method === 'OPTIONS') return res.sendStatus(204);
   next();

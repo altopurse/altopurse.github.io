@@ -107,10 +107,24 @@ do not fabricate them.
 
 ## Art
 
-One piece: **Void Series, 2026**, acrylic on canvas, roughly 1 m square
-(unconfirmed). The artist's statement is on the page in his own words. The
-black-and-white motif bottom right is **the third eye** — an earlier version
+One piece: **Primary Doubt**, Void Series, acrylic on canvas, 100 × 100 cm,
+painted 29 July – 1 August 2026. Title, dates and dimensions confirmed by the
+artist on 2 August 2026 — they are facts now, not placeholders.
+
+Process, in his account: ruled out in pencil into 3D triangles and freemasonry
+symbolism, then the canvas turned upside down before any paint went on. The
+subject is doubt — the thought that arrives at every step of making something
+and of living with bipolar — answered with persistence and colour coordination.
+The bipolar reference is the artist's own disclosure about his own work; keep it
+only while he wants it there.
+
+The series statement above the piece is separate and older, still in his words.
+The black-and-white motif bottom right is **the third eye** — an earlier version
 wrongly called it a flame; do not reintroduce that.
+
+The artwork `id` is still `tessellation-01` and the SKUs still `TESS01-*`. Those
+predate the title, are internal, and are never shown to a visitor — renaming them
+would break the catalogue lookup for no visible gain.
 
 Sold as a one-of-one original plus A3/A2/A1 signed prints. Merch (hoodie, tee,
 flat peak) is modelled and rendered but switched off pending a print partner.
@@ -140,6 +154,13 @@ sales records, so deleting an order outright trades one legal problem for anothe
 `/admin/` is behind `ADMIN_TOKEN` with a constant-time compare, held in
 `sessionStorage` for one tab. `noindex` and `robots.txt` are tidiness, not
 security.
+
+`Access-Control-Allow-Headers` **must keep listing `x-admin-token`**. The admin
+panel sends that header, a custom header forces a CORS preflight, and a preflight
+only permits the headers this list names. Without it every admin call is blocked
+by the browser before it is sent — verified by reproducing it, not by reading the
+spec. Nothing on the public site sends that header, so the bug is invisible until
+someone opens `/admin` against a deployed API.
 
 ## Deploying the API — currently blocked
 
@@ -174,19 +195,25 @@ but orders and analytics record nothing until
 ## Still unknown — ask the artist, never guess into the copy
 
 1. Real prices for the original and each print size.
-2. The canvas's actual dimensions, and its start/finish dates.
-3. Whether the piece has its own title, or whether "Void Series" is the whole name.
-4. A contact email — `privacy.html` is legally incomplete without a named
+2. A contact email — `privacy.html` is legally incomplete without a named
    controller and a working address, and the About button falls back to the
-   mailing list rather than a broken mailto.
-5. The artist's trading name, for the privacy notice.
-6. Which room each of the six releases belongs to.
-7. Apple Music and YouTube Music artist URLs — the icons stay hidden until these
+   mailing list rather than a broken mailto. **This is the last thing standing
+   between the notice and being complete under UK GDPR.**
+3. The artist's trading name, for the privacy notice.
+4. Which room each of the six releases belongs to.
+5. The track **Primary Doubt** — bassline house, 127 BPM, made alongside the
+   painting of the same name. Not one of the six listed releases. Unknown whether
+   it is released and where it can be heard, so it is **not on the site yet**.
+   Once that is known it earns a Music ↔ Art link, which nothing else on the site
+   currently has.
+6. Apple Music and YouTube Music artist URLs — the icons stay hidden until these
    are in `config.js`, because a dead icon is worse than no icon.
-8. A custom domain. `tumanicmae.com` and `tumanicmae.co.uk` both looked
+7. A custom domain. `tumanicmae.com` and `tumanicmae.co.uk` both looked
    unregistered. **Do not add a CNAME file before DNS resolves** — Pages will
    stop serving `altopurse.github.io` and serve only the custom domain, which
    will not work yet.
+
+Closed on 2 August 2026: the piece's title, dimensions and dates (see Art).
 
 ## Known open decisions
 
