@@ -176,11 +176,14 @@ async function loadShop() {
       state.merch = live.products ?? [];
       state.online = true;
 
-      // The API can be running while its database is not. It says so: the
-      // catalogue falls back to `source: 'repo'`, and an order in that state
-      // is refused at the last step. Better to leave checkout visibly off
-      // than to walk someone through a delivery address that cannot be saved.
-      const canCheckout = live.source === 'firestore';
+      // Checkout needs a database that is both connected and stocked. Either
+      // half can be missing: with no service account the catalogue falls back
+      // to `source: 'repo'`, and a connected but unseeded Firestore answers
+      // `firestore` with nothing in it. Both refuse the order at the last
+      // step — one with "cannot be recorded", one with "not for sale" — so
+      // both have to keep checkout shut rather than walk someone through a
+      // delivery address that leads nowhere.
+      const canCheckout = live.source === 'firestore' && state.artworks.length > 0;
       applyShop({ live: canCheckout });
 
       if (!canCheckout && status) {
