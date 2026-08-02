@@ -1,0 +1,45 @@
+# Render service definition, kept in the repo so the build and start commands
+# cannot be mistyped into a form again.
+#
+# This does not reconfigure a service that already exists — an existing
+# service keeps whatever is in its dashboard. Either match the dashboard to
+# what is below, or create the service fresh from this blueprint.
+
+services:
+  - type: web
+    name: tumanic-api
+    runtime: node
+    plan: free
+    region: frankfurt        # closest to a UK audience
+    rootDir: server
+    # npm ci, not npm install: it uses the committed package-lock.json, so a
+    # deploy installs exactly what was tested rather than resolving afresh.
+    buildCommand: npm ci
+    startCommand: node index.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Set every one of these in the dashboard. Never commit a real value —
+      # this repo is public.
+      - key: MOLLIE_API_KEY
+        sync: false
+      - key: SITE_ORIGIN
+        value: https://altopurse.github.io
+      - key: PUBLIC_API_URL
+        sync: false          # only known after the first deploy assigns a URL
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: ANALYTICS_SALT
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS_JSON
+        sync: false
+      - key: FIRESTORE_PROJECT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_ID
+        sync: false
+      - key: SPOTIFY_CLIENT_SECRET
+        sync: false
+      - key: SPOTIFY_ARTIST_ID
+        value: 5AhJwuhl8vQJB0rBqZ7UFI
+      - key: BUTTONDOWN_API_KEY
+        sync: false
