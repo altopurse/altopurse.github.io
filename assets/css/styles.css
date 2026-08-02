@@ -669,7 +669,14 @@ a { color: inherit; }
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
-.deck__src { margin-left: auto; color: var(--muted); }
+.deck__link {
+  margin-left: auto;
+  color: var(--accent-text);
+  text-decoration: none;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.deck__link:hover { text-decoration: underline; }
 .deck__dot {
   width: 7px;
   height: 7px;

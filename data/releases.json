@@ -7,11 +7,16 @@
     "bio": "UK EDM producer | Deep House / Drum & Bass / Dubstep / Hip-Hop | Weekly Releases",
     "spotifyId": "5AhJwuhl8vQJB0rBqZ7UFI"
   },
+  "$rooms": "Playlist ids were confirmed against Spotify's oembed titles, not assumed from the order they were sent in — three of the four did not match that order.",
   "rooms": [
-    { "id": "house", "name": "House", "room": "Glass room", "note": "Deep house and trance." },
-    { "id": "dnb", "name": "Drum & bass", "room": "Rage room", "note": "Breaks at speed." },
-    { "id": "dubstep", "name": "Dubstep", "room": "Padded room", "note": "Weight, and the space around it." },
-    { "id": "hiphop", "name": "Hip-hop", "room": "Forest", "note": "Beats to move under." }
+    { "id": "house", "name": "House", "room": "Glass room", "note": "Deep house and trance.",
+      "playlistId": "6U3FoT1vc7xlDMaiIGrGqY", "playlistName": "That's Tu-House!" },
+    { "id": "dnb", "name": "Drum & bass", "room": "Rage room", "note": "Breaks at speed.",
+      "playlistId": "0Ued4cPj7ndiN5WsSMzlZM", "playlistName": "That's Tu-Drum & Bass!" },
+    { "id": "dubstep", "name": "Dubstep", "room": "Padded room", "note": "Weight, and the space around it.",
+      "playlistId": "3QFlaaRKknFZSn79bCEL5K", "playlistName": "That's Tu-Dubstep!" },
+    { "id": "hiphop", "name": "Hip-hop", "room": "Forest", "note": "Beats to move under.",
+      "playlistId": "2br3ECvuyNmv1aV4GdQbtu", "playlistName": "That's Tu-Hiphop!" }
   ],
   "releases": [
     {

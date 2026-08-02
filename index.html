@@ -150,33 +150,38 @@
     <h3 class="rule" id="rooms-h"><span>Rooms</span></h3>
 
     <div class="rooms" role="tablist" aria-labelledby="rooms-h">
-      <button class="room room--all" role="tab" id="tab-all" aria-selected="true" aria-controls="panel-releases" tabindex="0" data-room="all">
+      <button class="room room--all" role="tab" id="tab-all" aria-selected="true" aria-controls="panel-releases" tabindex="0"
+              data-room="all" data-embed="artist/5AhJwuhl8vQJB0rBqZ7UFI" data-embed-name="Full catalogue">
         <span class="room__name">Everything</span>
         <span class="room__note">All releases, newest first</span>
       </button>
 
-      <button class="room room--glass" role="tab" id="tab-house" aria-selected="false" aria-controls="panel-releases" tabindex="-1" data-room="house">
+      <button class="room room--glass" role="tab" id="tab-house" aria-selected="false" aria-controls="panel-releases" tabindex="-1"
+              data-room="house" data-embed="playlist/6U3FoT1vc7xlDMaiIGrGqY" data-embed-name="That's Tu-House!">
         <span class="room__art" aria-hidden="true"></span>
         <span class="room__label">Glass room</span>
         <span class="room__name">House</span>
         <span class="room__note">Deep house and trance</span>
       </button>
 
-      <button class="room room--rage" role="tab" id="tab-dnb" aria-selected="false" aria-controls="panel-releases" tabindex="-1" data-room="dnb">
+      <button class="room room--rage" role="tab" id="tab-dnb" aria-selected="false" aria-controls="panel-releases" tabindex="-1"
+              data-room="dnb" data-embed="playlist/0Ued4cPj7ndiN5WsSMzlZM" data-embed-name="That's Tu-Drum &amp; Bass!">
         <span class="room__art" aria-hidden="true"></span>
         <span class="room__label">Rage room</span>
         <span class="room__name">Drum &amp; bass</span>
         <span class="room__note">Breaks at speed</span>
       </button>
 
-      <button class="room room--padded" role="tab" id="tab-dubstep" aria-selected="false" aria-controls="panel-releases" tabindex="-1" data-room="dubstep">
+      <button class="room room--padded" role="tab" id="tab-dubstep" aria-selected="false" aria-controls="panel-releases" tabindex="-1"
+              data-room="dubstep" data-embed="playlist/3QFlaaRKknFZSn79bCEL5K" data-embed-name="That's Tu-Dubstep!">
         <span class="room__art" aria-hidden="true"></span>
         <span class="room__label">Padded room</span>
         <span class="room__name">Dubstep</span>
         <span class="room__note">Weight, and the space around it</span>
       </button>
 
-      <button class="room room--forest" role="tab" id="tab-hiphop" aria-selected="false" aria-controls="panel-releases" tabindex="-1" data-room="hiphop">
+      <button class="room room--forest" role="tab" id="tab-hiphop" aria-selected="false" aria-controls="panel-releases" tabindex="-1"
+              data-room="hiphop" data-embed="playlist/2br3ECvuyNmv1aV4GdQbtu" data-embed-name="That's Tu-Hiphop!">
         <span class="room__art" aria-hidden="true"></span>
         <span class="room__label">Forest</span>
         <span class="room__name">Hip-hop</span>
@@ -188,12 +193,15 @@
     <div class="deck">
       <div class="deck__head">
         <span class="deck__dot" aria-hidden="true"></span>
-        <span class="deck__label">Full catalogue</span>
-        <span class="deck__src">Spotify</span>
+        <span class="deck__label" id="deck-label">Full catalogue</span>
+        <a class="deck__link" id="deck-link" href="https://open.spotify.com/artist/5AhJwuhl8vQJB0rBqZ7UFI" target="_blank" rel="noopener">
+          Open in Spotify<span aria-hidden="true"> ↗</span>
+        </a>
       </div>
       <iframe
         class="deck__frame"
-        title="TUMANIC on Spotify"
+        id="deck-frame"
+        title="TUMANIC on Spotify — Full catalogue"
         src="https://open.spotify.com/embed/artist/5AhJwuhl8vQJB0rBqZ7UFI?utm_source=generator&amp;theme=0"
         height="420" loading="lazy"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
@@ -258,7 +266,8 @@
       </ol>
 
       <p class="disco__empty" id="disco-empty" hidden>
-        Nothing tagged for this room yet. Try <button class="linkish" type="button" data-goto-room="all">everything</button>.
+        No individual releases are tagged to this room yet — the playlist above has
+        the full set. Or see <button class="linkish" type="button" data-goto-room="all">everything</button>.
       </p>
     </div>
 

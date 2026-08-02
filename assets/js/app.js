@@ -87,6 +87,30 @@ function platforms() {
   }
 }
 
+/* ── Player follows the room ──────────────────────────────── */
+
+/**
+ * Each room has its own Spotify playlist; Everything shows the artist.
+ * Swapping the src reloads the embed, so anything playing stops — which is
+ * what you want when you have deliberately changed room.
+ */
+function swapDeck(tab) {
+  const frame = $('#deck-frame');
+  const label = $('#deck-label');
+  const link = $('#deck-link');
+  const embed = tab.dataset.embed;
+  if (!frame || !embed) return;
+
+  const next = `https://open.spotify.com/embed/${embed}?utm_source=generator&theme=0`;
+  if (frame.getAttribute('src') === next) return;
+
+  const name = tab.dataset.embedName ?? tab.querySelector('.room__name')?.textContent?.trim() ?? '';
+  frame.setAttribute('src', next);
+  frame.title = `TUMANIC on Spotify — ${name}`;
+  if (label) label.textContent = name;
+  if (link) link.href = `https://open.spotify.com/${embed}`;
+}
+
 /* ── Rooms: tabs with roving tabindex ─────────────────────── */
 
 function rooms() {
@@ -103,6 +127,8 @@ function rooms() {
     }
     panel.setAttribute('aria-labelledby', tab.id);
     if (focus) tab.focus();
+
+    swapDeck(tab);
 
     const room = tab.dataset.room;
     let shown = 0;
