@@ -1,0 +1,42 @@
+{
+  "$comment": "Merch templates. Every artwork can be printed onto any of these, so the catalogue is products × artworks rather than a flat list. Prices in minor units (pence) and marked draft until confirmed. Fulfilment is print on demand — printProvider and providerVariantId get filled in once the Printful or Printify account exists.",
+  "source": "local",
+  "currency": "GBP",
+  "pricesAreDraft": true,
+  "printProvider": null,
+  "products": [
+    {
+      "id": "hoodie",
+      "name": "Hoodie",
+      "blurb": "Heavyweight cotton hoodie, artwork printed across the back.",
+      "priceMinor": 4800,
+      "draftPrice": true,
+      "sizes": ["S", "M", "L", "XL", "2XL"],
+      "colours": ["Black"],
+      "providerVariantId": null,
+      "available": false
+    },
+    {
+      "id": "tee",
+      "name": "T-shirt",
+      "blurb": "Cotton tee, artwork printed front and centre.",
+      "priceMinor": 2800,
+      "draftPrice": true,
+      "sizes": ["S", "M", "L", "XL", "2XL"],
+      "colours": ["Black", "White"],
+      "providerVariantId": null,
+      "available": false
+    },
+    {
+      "id": "flatpeak",
+      "name": "Flat peak",
+      "blurb": "Snapback with the artwork across the front panel.",
+      "priceMinor": 2600,
+      "draftPrice": true,
+      "sizes": ["One size"],
+      "colours": ["Black"],
+      "providerVariantId": null,
+      "available": false
+    }
+  ]
+}

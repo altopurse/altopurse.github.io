@@ -1,0 +1,11 @@
+{
+  "$comment": "Events, venues and project posts. Tickets are sold by an external platform — put its URL in ticketUrl and the listing links straight out to it. Nothing here is invented: the arrays are empty until there is something real to put in them, and the page has a designed empty state for each.",
+  "source": "local",
+  "events": [],
+  "venues": [],
+  "projects": [],
+  "newsletter": {
+    "enabled": true,
+    "blurb": "Get the new track each week, plus first look at any artwork before it goes up."
+  }
+}

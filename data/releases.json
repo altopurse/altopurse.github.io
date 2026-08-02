@@ -1,0 +1,81 @@
+{
+  "$comment": "Fallback discography, used when the backend is unreachable. Once the Spotify sync is running the backend serves this same shape from Firestore. Order in this array IS the recency order — exact release dates are unknown until Spotify fills them in, so do not invent them.",
+  "source": "local",
+  "updated": null,
+  "artist": {
+    "name": "TUMANIC",
+    "bio": "UK EDM producer | Deep House / Drum & Bass / Dubstep / Hip-Hop | Weekly Releases",
+    "spotifyId": "5AhJwuhl8vQJB0rBqZ7UFI"
+  },
+  "rooms": [
+    { "id": "house", "name": "House", "room": "Glass room", "note": "Deep house and trance." },
+    { "id": "dnb", "name": "Drum & bass", "room": "Rage room", "note": "Breaks at speed." },
+    { "id": "dubstep", "name": "Dubstep", "room": "Padded room", "note": "Weight, and the space around it." },
+    { "id": "hiphop", "name": "Hip-hop", "room": "Forest", "note": "Beats to move under." }
+  ],
+  "releases": [
+    {
+      "id": "evisceration",
+      "title": "Evisceration",
+      "year": 2026,
+      "releasedOn": null,
+      "genre": null,
+      "latest": true,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": { "hyperfollow": "https://distrokid.com/hyperfollow/tumanic/evisceration" }
+    },
+    {
+      "id": "tu-witchy",
+      "title": "Tu Witchy",
+      "year": 2026,
+      "releasedOn": null,
+      "genre": null,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": {}
+    },
+    {
+      "id": "trap-shitty",
+      "title": "trap$hitty",
+      "year": 2026,
+      "releasedOn": null,
+      "genre": null,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": {}
+    },
+    {
+      "id": "smack-me-up",
+      "title": "Smack Me Up",
+      "year": 2026,
+      "releasedOn": null,
+      "genre": null,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": {}
+    },
+    {
+      "id": "bel-mercy",
+      "title": "Bel Mercy",
+      "year": 2022,
+      "releasedOn": null,
+      "genre": null,
+      "mostPlayed": true,
+      "streams": 172000,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": {}
+    },
+    {
+      "id": "glorifying-addictions",
+      "title": "Glorifying Addictions",
+      "year": 2022,
+      "releasedOn": null,
+      "genre": null,
+      "spotifyTrackId": null,
+      "youtubeId": null,
+      "links": {}
+    }
+  ]
+}

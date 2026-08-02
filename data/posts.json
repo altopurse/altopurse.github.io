@@ -1,0 +1,5 @@
+{
+  "$comment": "Track write-ups. Key each post to a release id from releases.json. A release with no post here simply shows no write-up affordance — nothing says 'coming soon'. See docs/CONTENT.md for how to add one.",
+  "source": "local",
+  "posts": []
+}

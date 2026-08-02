@@ -1,0 +1,71 @@
+# TUMANIC M·A·E
+
+Site for TUMANIC — UK producer and painter. Music, art and events.
+
+Front end is static HTML, CSS and JavaScript with no build step, served by
+GitHub Pages from the root of this repo. The API lives in [`server/`](server)
+and runs on Render.
+
+## Running it locally
+
+```bash
+python -m http.server 8080
+```
+
+Then open <http://localhost:8080>. Use a server rather than opening
+`index.html` directly — the page fetches JSON, and `file://` blocks that.
+
+## How it holds together
+
+The page renders **before** any JavaScript runs. The feature artwork, the
+discography and the Spotify player are all in `index.html` as real markup, so a
+sleeping API, a failed script or a blocked CDN never costs a visitor the
+content. `assets/js/app.js` upgrades that markup in place when it can.
+
+| Path | What it holds |
+|---|---|
+| `index.html` | Whole page. Gateway, three sections, About, checkout dialog |
+| `assets/css/styles.css` | Everything visual. Colours are sampled from the painting |
+| `assets/js/config.js` | Public settings — API URL, platform links. **Never a secret** |
+| `assets/js/app.js` | Data loading, room tabs, checkout, mailing list |
+| `data/*.json` | Fallback catalogue, used when the API is unreachable |
+| `assets/art/`, `assets/img/` | Web derivatives. Originals stay off the repo |
+| `server/` | Express API — Mollie checkout, Firestore, Spotify sync |
+| `docs/` | The original brief and the artist's wireframe |
+
+## Turning things on
+
+Each of these is off until its account exists, and each fails to a designed
+state rather than an error.
+
+1. **Checkout** — deploy `server/` to Render, then set `apiBase` in
+   `assets/js/config.js` to the Render URL. Until then buy buttons say the
+   checkout is offline.
+2. **Apple Music and YouTube Music** — paste the artist URLs into
+   `config.js`. The icons appear on their own. A missing URL renders nothing,
+   because a dead icon is worse than no icon.
+3. **Comments** — enable Discussions on this repo, run through
+   [giscus.app](https://giscus.app), and paste the four values into `config.js`.
+4. **Mailing list** — set `BUTTONDOWN_API_KEY` in Render.
+5. **Merch** — connect Printful or Printify and fill in `providerVariantId`
+   in `data/merch.json`.
+
+## Still needed from the artist
+
+- Prices for the original and each print size. Everything in
+  `data/artworks.json` is a **draft** and the page says so on the page.
+- The canvas's real dimensions, its title and the year.
+- A contact email for commissions and receipts.
+- Which room each release belongs in — every `genre` in `data/releases.json`
+  is `null`, so all four rooms are currently empty and the page says why.
+- A higher-resolution photo of the painting. The best available crop is about
+  1000 px square, which caps how large it can be shown.
+
+## Rules that are not up for negotiation
+
+- **No secret ever goes in this repo.** It is public. Keys live in Render's
+  environment. `server/.env` is git-ignored.
+- **Prices are computed server-side.** The browser sends a SKU and nothing
+  about money. The server looks the price up in Firestore before charging.
+- **The Mollie webhook is not trusted.** Mollie posts an id; the server
+  re-fetches the payment from Mollie's API to find out what really happened.

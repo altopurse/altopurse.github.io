@@ -1,0 +1,23 @@
+# Secrets — never commit these. The Pages repo is public.
+.env
+.env.*
+!.env.example
+**/serviceAccount*.json
+**/firebase-adminsdk*.json
+
+# Dependencies
+node_modules/
+
+# Source media — originals stay on disk, only web derivatives are committed
+/source-media/
+*.mp4
+*.mov
+*.heic
+
+# OS and editor noise
+Thumbs.db
+desktop.ini
+.DS_Store
+*.swp
+.vscode/
+.idea/
