@@ -23,8 +23,11 @@ services:
       # this repo is public.
       - key: MOLLIE_API_KEY
         sync: false
+      # Comma-separated. Every origin here is allowed by CORS, and the FIRST
+      # one is what Mollie redirects back to after payment — so the custom
+      # domain has to lead, with the Pages URL kept for the redirect window.
       - key: SITE_ORIGIN
-        value: https://altopurse.github.io
+        value: https://tumanic.com,https://www.tumanic.com,https://altopurse.github.io
       - key: PUBLIC_API_URL
         sync: false          # only known after the first deploy assigns a URL
       - key: ADMIN_TOKEN
