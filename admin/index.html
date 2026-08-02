@@ -196,10 +196,21 @@
   const token = () => sessionStorage.getItem(KEY);
 
   async function api(path, opts = {}) {
-    const res = await fetch(`${API}${path}`, {
-      ...opts,
-      headers: { ...(opts.headers ?? {}), 'x-admin-token': token() ?? '' }
-    });
+    let res;
+    try {
+      res = await fetch(`${API}${path}`, {
+        ...opts,
+        headers: { ...(opts.headers ?? {}), 'x-admin-token': token() ?? '' }
+      });
+    } catch {
+      // fetch() rejects with a bare "Failed to fetch" for every network-level
+      // cause, so name the one that actually happens: the API only trusts
+      // https origins, and an http page is refused before the request is sent.
+      if (location.protocol === 'http:') {
+        throw new Error(`This page was opened over http, which the API refuses. Go to https://${location.host}${location.pathname} instead.`);
+      }
+      throw new Error('Could not reach the API. It sleeps after 15 minutes idle and takes up to a minute to wake — wait a moment and try again.');
+    }
     if (res.status === 401) { signOut('That token was not accepted.'); throw new Error('unauthorised'); }
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Server returned ${res.status}.`);
     return res.json();
@@ -333,7 +344,18 @@
     } catch (err) { msg.textContent = err.message; msg.dataset.state = 'error'; }
   });
 
-  if (token()) { $('#gate').hidden = true; $('#dash').hidden = false; load(); }
+  // Catch an insecure page before a token is typed into it, rather than after.
+  // An http page can be altered in transit, so the token is at risk the moment
+  // it is entered — warning at submit time would already be too late.
+  if (location.protocol === 'http:' && location.hostname !== 'localhost') {
+    const m = $('#gate-msg');
+    m.textContent = 'This page was opened over http, which is not secure and the API will refuse. Use the https address before entering a token.';
+    m.dataset.state = 'error';
+    $('#token').disabled = true;
+    $('#gate-form').querySelector('button[type=submit]').disabled = true;
+  } else if (token()) {
+    $('#gate').hidden = true; $('#dash').hidden = false; load();
+  }
 </script>
 </body>
 </html>
