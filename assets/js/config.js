@@ -17,7 +17,7 @@ window.TUMANIC_CONFIG = {
 
   /* Where to send commission and booking enquiries. Until this is set the
      button points at the mailing list instead of an empty mailto. */
-  contactEmail: null,
+  contactEmail: 'tumanicmae@gmail.com',
 
   /* Add a URL and its icon appears in the Music section automatically.
      null means the link is unknown, so nothing is rendered — a dead icon
