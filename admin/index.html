@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin — TUMANIC M·A·E</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0A0A0C">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,700;125,900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/css/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%230A0A0C'/%3E%3Cpath d='M12 4 16.7 18.47 4.39 9.53 19.61 9.53 7.3 18.47Z' fill='none' stroke='%23F2C400' stroke-width='1.6'/%3E%3C/svg%3E">
+<style>
+  .admin { width: min(76rem, 100%); margin-inline: auto; padding: clamp(1.5rem, 4vw, 3rem) var(--pad) 5rem; }
+  .admin__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 1rem; margin-bottom: 2rem; }
+  .admin__title {
+    margin: 0; font-family: var(--display); font-variation-settings: 'wdth' 125;
+    font-weight: 900; font-size: clamp(1.8rem, 5vw, 2.75rem); text-transform: uppercase;
+  }
+  .admin__out { margin-left: auto; }
+
+  .gate { width: min(24rem, 100%); margin: 12vh auto; }
+  .gate__title {
+    margin: 0 0 0.75rem; font-family: var(--display); font-variation-settings: 'wdth' 125;
+    font-weight: 900; font-size: 1.9rem; text-transform: uppercase;
+  }
+  .gate p { color: var(--muted); margin: 0 0 1.5rem; }
+  .gate .btn { width: 100%; margin-top: 1rem; }
+
+  .tiles { display: grid; gap: 0.75rem; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); margin-bottom: 2rem; }
+  .tile { padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); }
+  .tile__n {
+    display: block; font-family: var(--display); font-variation-settings: 'wdth' 125;
+    font-weight: 900; font-size: clamp(1.6rem, 4vw, 2.2rem); font-variant-numeric: tabular-nums; line-height: 1;
+  }
+  .tile__k { display: block; margin-top: 0.35rem; font-family: var(--mono); font-size: 0.68rem;
+             letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+
+  .panels { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+  @media (min-width: 860px) { .panels { grid-template-columns: 1fr 1fr; } }
+
+  .panel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); overflow: hidden; }
+  .panel > h2 {
+    margin: 0; padding: 0.8rem 1rem; border-bottom: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+  }
+  .panel--wide { grid-column: 1 / -1; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  caption { text-align: left; padding: 0.5rem 1rem; color: var(--muted); font-size: 0.78rem; }
+  th, td { padding: 0.5rem 1rem; text-align: left; border-bottom: 1px solid var(--line); }
+  th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+       text-transform: uppercase; color: var(--muted); font-weight: 500; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.n, th.n { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .key { overflow-wrap: anywhere; }
+
+  /* Bar sits behind the row so the table stays a real table. */
+  .bar { position: relative; }
+  .bar::before {
+    content: ''; position: absolute; inset: 2px auto 2px 0;
+    width: calc(var(--pct, 0) * 1%); background: color-mix(in srgb, var(--yellow) 16%, transparent);
+    border-radius: 2px; z-index: 0;
+  }
+  .bar > * { position: relative; z-index: 1; }
+
+  .msg { margin: 0 0 1.25rem; padding: 0.7rem 0.9rem; border-left: 3px solid var(--yellow);
+         background: color-mix(in srgb, var(--yellow) 10%, transparent); font-family: var(--mono); font-size: 0.8rem; }
+  .msg[data-state='error'] { border-color: #FF7A6E; background: rgb(255 122 110 / 0.1); }
+  .msg:empty { display: none; }
+
+  .tools { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
+  .privacy-note { margin-top: 2.5rem; max-width: 62ch; font-size: 0.85rem; color: var(--muted); }
+  .privacy-note a { color: var(--yellow); }
+</style>
+</head>
+<body class="chapter--music">
+
+<!-- Sign in ------------------------------------------------- -->
+<main class="gate" id="gate">
+  <h1 class="gate__title">Admin</h1>
+  <p>Paste the admin token. It is held for this browser tab only and is gone when you close it.</p>
+  <form id="gate-form" novalidate>
+    <div class="field">
+      <label for="token">Admin token</label>
+      <input id="token" name="token" type="password" autocomplete="current-password" required>
+    </div>
+    <p class="msg" id="gate-msg" role="alert"></p>
+    <button class="btn btn--primary" type="submit">Sign in</button>
+  </form>
+  <p class="privacy-note"><a href="../">Back to the site</a></p>
+</main>
+
+<!-- Dashboard ----------------------------------------------- -->
+<main class="admin" id="dash" hidden>
+  <div class="admin__head">
+    <h1 class="admin__title">Admin</h1>
+    <div class="field" style="max-width:9rem">
+      <label for="range">Range</label>
+      <select id="range" style="min-height:2.75rem;padding:.6rem .75rem;border:1px solid var(--line-2);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:var(--body)">
+        <option value="7">Last 7 days</option>
+        <option value="30" selected>Last 30 days</option>
+        <option value="90">Last 90 days</option>
+      </select>
+    </div>
+    <button class="btn btn--ghost admin__out" type="button" id="signout">Sign out</button>
+  </div>
+
+  <p class="msg" id="msg" role="status" aria-live="polite"></p>
+
+  <div class="tiles">
+    <div class="tile"><span class="tile__n" id="t-views">—</span><span class="tile__k">Page views</span></div>
+    <div class="tile"><span class="tile__n" id="t-visitors">—</span><span class="tile__k">Visitors</span></div>
+    <div class="tile"><span class="tile__n" id="t-buy">—</span><span class="tile__k">Buy clicks</span></div>
+    <div class="tile"><span class="tile__n" id="t-orders">—</span><span class="tile__k">Orders</span></div>
+  </div>
+
+  <div class="panels">
+    <section class="panel panel--wide">
+      <h2>By day</h2>
+      <table><caption>Page views and visitors per day, newest first.</caption>
+        <thead><tr><th scope="col">Date</th><th class="n" scope="col">Views</th><th class="n" scope="col">Visitors</th></tr></thead>
+        <tbody id="tb-days"></tbody>
+      </table>
+    </section>
+
+    <section class="panel"><h2>Pages</h2>
+      <table><thead><tr><th scope="col">Path</th><th class="n" scope="col">Views</th></tr></thead><tbody id="tb-paths"></tbody></table>
+    </section>
+
+    <section class="panel"><h2>Came from</h2>
+      <table><thead><tr><th scope="col">Source</th><th class="n" scope="col">Views</th></tr></thead><tbody id="tb-refs"></tbody></table>
+    </section>
+
+    <section class="panel"><h2>Rooms opened</h2>
+      <table><thead><tr><th scope="col">Room</th><th class="n" scope="col">Opens</th></tr></thead><tbody id="tb-rooms"></tbody></table>
+    </section>
+
+    <section class="panel"><h2>Actions</h2>
+      <table><thead><tr><th scope="col">Event</th><th class="n" scope="col">Count</th></tr></thead><tbody id="tb-events"></tbody></table>
+    </section>
+
+    <section class="panel"><h2>Devices</h2>
+      <table><thead><tr><th scope="col">Type</th><th class="n" scope="col">Views</th></tr></thead><tbody id="tb-devices"></tbody></table>
+    </section>
+
+    <section class="panel"><h2>Languages</h2>
+      <table><thead><tr><th scope="col">Language</th><th class="n" scope="col">Views</th></tr></thead><tbody id="tb-langs"></tbody></table>
+    </section>
+
+    <section class="panel panel--wide"><h2>Orders</h2>
+      <table>
+        <caption>Buyer details are personal data. Use erase to answer a deletion request — it removes the person and keeps the sale, which UK tax rules require for six years.</caption>
+        <thead><tr>
+          <th scope="col">Date</th><th scope="col">Item</th><th class="n" scope="col">Amount</th>
+          <th scope="col">Status</th><th scope="col">Buyer</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr></thead>
+        <tbody id="tb-orders"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="tools">
+    <button class="btn btn--ghost" type="button" id="sync">Sync releases from Spotify</button>
+    <button class="btn btn--ghost" type="button" id="purge">Run retention purge</button>
+  </div>
+
+  <p class="privacy-note">
+    Counting here uses no cookies and stores no IP address. Visitor numbers come
+    from a hash that includes the date, so the same person tomorrow is an
+    unrelated value and cannot be followed between days. That is what keeps the
+    site free of a consent banner — see the <a href="../privacy.html">privacy notice</a>.
+  </p>
+</main>
+
+<script src="../assets/js/config.js"></script>
+<script type="module">
+  const CFG = window.TUMANIC_CONFIG ?? {};
+  const API = (CFG.apiBase ?? '').replace(/\/$/, '');
+  const $ = (s) => document.querySelector(s);
+  const nf = new Intl.NumberFormat(CFG.locale ?? 'en-GB');
+  const money = new Intl.NumberFormat(CFG.locale ?? 'en-GB', {
+    style: 'currency', currency: CFG.currency ?? 'GBP', minimumFractionDigits: 0, maximumFractionDigits: 2
+  });
+  const dt = new Intl.DateTimeFormat(CFG.locale ?? 'en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+  // Session only: closing the tab drops it. Never in localStorage, never in the URL.
+  const KEY = 'tumanic-admin-token';
+  const token = () => sessionStorage.getItem(KEY);
+
+  async function api(path, opts = {}) {
+    const res = await fetch(`${API}${path}`, {
+      ...opts,
+      headers: { ...(opts.headers ?? {}), 'x-admin-token': token() ?? '' }
+    });
+    if (res.status === 401) { signOut('That token was not accepted.'); throw new Error('unauthorised'); }
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? `Server returned ${res.status}.`);
+    return res.json();
+  }
+
+  function signOut(why) {
+    sessionStorage.removeItem(KEY);
+    $('#dash').hidden = true;
+    $('#gate').hidden = false;
+    const m = $('#gate-msg');
+    m.textContent = why ?? '';
+    m.dataset.state = why ? 'error' : '';
+  }
+
+  const esc = (s) => String(s ?? '').replace(/[<>&"]/g, (c) => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;' }[c]));
+
+  function fillPairs(tbody, pairs) {
+    if (!pairs?.length) {
+      tbody.innerHTML = '<tr><td colspan="2" style="color:var(--muted)">Nothing recorded yet.</td></tr>';
+      return;
+    }
+    const max = Math.max(...pairs.map(([, n]) => n)) || 1;
+    tbody.innerHTML = pairs.slice(0, 12).map(([k, n]) =>
+      `<tr class="bar" style="--pct:${(n / max) * 100}"><td class="key">${esc(k)}</td><td class="n">${nf.format(n)}</td></tr>`
+    ).join('');
+  }
+
+  async function load() {
+    const days = $('#range').value;
+    const msg = $('#msg');
+    msg.textContent = 'Loading…';
+    msg.dataset.state = '';
+
+    try {
+      const [s, o] = await Promise.all([api(`/api/admin/stats?days=${days}`), api('/api/admin/orders')]);
+
+      if (!s.available) {
+        msg.textContent = 'Firestore is not connected, so nothing is being recorded yet.';
+        msg.dataset.state = 'error';
+      } else {
+        msg.textContent = '';
+      }
+
+      $('#t-views').textContent = nf.format(s.totals?.pageviews ?? 0);
+      $('#t-visitors').textContent = nf.format(s.totals?.visitors ?? 0);
+      $('#t-buy').textContent = nf.format((s.events ?? []).find(([k]) => k === 'buy_click')?.[1] ?? 0);
+      $('#t-orders').textContent = nf.format(o.orders?.length ?? 0);
+
+      const maxDay = Math.max(1, ...(s.days ?? []).map((d) => d.pageviews));
+      $('#tb-days').innerHTML = (s.days ?? []).length
+        ? s.days.map((d) => `<tr class="bar" style="--pct:${(d.pageviews / maxDay) * 100}">
+             <td>${esc(d.date)}</td><td class="n">${nf.format(d.pageviews)}</td><td class="n">${nf.format(d.visitors)}</td></tr>`).join('')
+        : '<tr><td colspan="3" style="color:var(--muted)">No visits recorded yet.</td></tr>';
+
+      fillPairs($('#tb-paths'), s.paths);
+      fillPairs($('#tb-refs'), s.referrers);
+      fillPairs($('#tb-rooms'), s.rooms);
+      fillPairs($('#tb-events'), s.events);
+      fillPairs($('#tb-devices'), s.devices);
+      fillPairs($('#tb-langs'), s.languages);
+
+      $('#tb-orders').innerHTML = (o.orders ?? []).length
+        ? o.orders.map((x) => {
+            const erased = x.buyer?.name === '[erased]';
+            return `<tr>
+              <td>${esc(x.createdAt ? dt.format(new Date(x.createdAt)) : '—')}</td>
+              <td class="key">${esc(x.description ?? x.sku ?? '—')}</td>
+              <td class="n">${Number.isFinite(x.amountMinor) ? esc(money.format(x.amountMinor / 100)) : '—'}</td>
+              <td>${esc(x.status ?? '—')}</td>
+              <td class="key">${erased ? '<em style="color:var(--muted)">erased</em>' : esc(x.buyer?.email ?? '—')}</td>
+              <td>${erased ? '' : `<button class="linkish" type="button" data-erase="${esc(x.id)}">Erase buyer</button>`}</td>
+            </tr>`;
+          }).join('')
+        : '<tr><td colspan="6" style="color:var(--muted)">No orders yet.</td></tr>';
+
+    } catch (err) {
+      if (err.message === 'unauthorised') return;
+      msg.textContent = err.message;
+      msg.dataset.state = 'error';
+    }
+  }
+
+  $('#gate-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const value = $('#token').value.trim();
+    if (!value) return;
+    if (!API) {
+      $('#gate-msg').textContent = 'No API URL is set in config.js, so there is nothing to sign in to.';
+      $('#gate-msg').dataset.state = 'error';
+      return;
+    }
+    sessionStorage.setItem(KEY, value);
+    $('#token').value = '';
+    $('#gate').hidden = true;
+    $('#dash').hidden = false;
+    load();
+  });
+
+  $('#signout').addEventListener('click', () => signOut());
+  $('#range').addEventListener('change', load);
+
+  $('#tb-orders').addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-erase]');
+    if (!btn) return;
+    if (!confirm('Erase this buyer\'s name, email and address? The sale record stays, the person is removed. This cannot be undone.')) return;
+    try {
+      await api(`/api/admin/orders/${encodeURIComponent(btn.dataset.erase)}/anonymise`, { method: 'POST' });
+      load();
+    } catch (err) { alert(err.message); }
+  });
+
+  $('#sync').addEventListener('click', async () => {
+    const msg = $('#msg');
+    msg.textContent = 'Asking Spotify…'; msg.dataset.state = '';
+    try {
+      const r = await api('/api/admin/sync', { method: 'POST' });
+      msg.textContent = `Synced ${r.count} releases. Genres you had already set were kept.`;
+    } catch (err) { msg.textContent = err.message; msg.dataset.state = 'error'; }
+  });
+
+  $('#purge').addEventListener('click', async () => {
+    const msg = $('#msg');
+    msg.textContent = 'Purging…'; msg.dataset.state = '';
+    try {
+      const r = await api('/api/admin/purge', { method: 'POST' });
+      msg.textContent = `Deleted ${r.markersDeleted} visitor markers and ${r.purged} old daily records.`;
+    } catch (err) { msg.textContent = err.message; msg.dataset.state = 'error'; }
+  });
+
+  if (token()) { $('#gate').hidden = true; $('#dash').hidden = false; load(); }
+</script>
+</body>
+</html>

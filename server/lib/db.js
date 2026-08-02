@@ -94,6 +94,29 @@ export async function getOrder(id) {
   return doc.exists ? { id: doc.id, ...doc.data() } : null;
 }
 
+export async function listOrders({ limit = 50 } = {}) {
+  if (!usingFirestore) return [];
+  const snap = await firestore.collection('orders')
+    .orderBy('createdAt', 'desc').limit(limit).get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * Erasure request handling. UK tax rules mean a sale record has to survive
+ * for six years, so the transaction stays and only the person is removed.
+ * Deleting the whole order would trade one legal problem for another.
+ */
+export async function anonymiseOrder(id) {
+  if (!usingFirestore) throw new Error('Cannot edit orders without Firestore.');
+  await firestore.collection('orders').doc(id).set({
+    buyer: {
+      name: '[erased]', email: '[erased]', address: '[erased]',
+      postcode: '[erased]', country: '[erased]'
+    },
+    anonymisedAt: new Date().toISOString()
+  }, { merge: true });
+}
+
 /**
  * Mark an order paid and, if it was a one-of-one, mark the original sold —
  * both in a single transaction so two simultaneous payments cannot both win.

@@ -9,14 +9,17 @@
    ============================================================ */
 
 import express from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import {
   initDb, usingFirestore,
   getArtworks, getMerch, getReleases, saveReleases,
-  createOrder, updateOrder, getOrder, settleOrder
+  createOrder, updateOrder, getOrder, settleOrder,
+  listOrders, anonymiseOrder
 } from './lib/db.js';
 import { lookupSku, toMollieAmount } from './lib/catalogue.js';
 import { createPayment, getPayment } from './lib/mollie.js';
 import { fetchReleases, keepGenres } from './lib/spotify.js';
+import { record, stats, purge } from './lib/analytics.js';
 
 try { process.loadEnvFile('./.env'); } catch { /* Render supplies real env vars */ }
 
@@ -25,7 +28,9 @@ const PORT = process.env.PORT || 3000;
 const CURRENCY = 'GBP';
 
 app.set('trust proxy', 1);
-app.use(express.json({ limit: '16kb' }));
+// text/plain is included so the analytics beacon avoids a CORS preflight,
+// which sendBeacon cannot perform.
+app.use(express.json({ limit: '16kb', type: ['application/json', 'text/plain'] }));
 app.use(express.urlencoded({ extended: false, limit: '16kb' })); // Mollie posts form-encoded
 
 /* ── CORS, locked to the Pages origin ─────────────────────── */
@@ -231,15 +236,75 @@ app.post('/api/subscribe', limit(5, 60_000), async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-/* ── Spotify sync ─────────────────────────────────────────── */
+/* ── Analytics intake ─────────────────────────────────────── */
 
-app.post('/api/admin/sync', async (req, res, next) => {
+app.post('/api/collect', limit(120, 60_000), async (req, res) => {
+  // Answer first: a visitor should never wait on a counter.
+  res.sendStatus(204);
+
+  // Global Privacy Control is a legally recognised opt-out in some
+  // jurisdictions. The client already checks it; this is the backstop.
+  if (req.get('sec-gpc') === '1' || req.get('dnt') === '1') return;
+
   try {
-    const token = process.env.ADMIN_TOKEN?.trim();
-    if (!token || req.get('x-admin-token') !== token) {
-      return res.status(401).json({ error: 'Not authorised.' });
-    }
+    await record({
+      ip: req.ip,
+      ua: req.get('user-agent'),
+      lang: req.get('accept-language'),
+      referrer: str(req.body?.referrer, 300),
+      path: str(req.body?.path, 120),
+      event: str(req.body?.event, 40),
+      room: str(req.body?.room, 24)
+    });
+  } catch (err) {
+    console.error('[collect]', err.message);
+  }
+});
 
+/* ── Admin ────────────────────────────────────────────────── */
+
+function requireAdmin(req, res, next) {
+  const expected = process.env.ADMIN_TOKEN?.trim();
+  const given = req.get('x-admin-token') ?? '';
+  if (!expected) return res.status(503).json({ error: 'No admin token is configured on the server.' });
+
+  // Constant-time compare so the token cannot be guessed a character at a time.
+  const a = Buffer.from(expected);
+  const b = Buffer.from(given);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    return res.status(401).json({ error: 'Not authorised.' });
+  }
+  next();
+}
+
+app.get('/api/admin/stats', requireAdmin, async (req, res, next) => {
+  try {
+    const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 365);
+    res.set('Cache-Control', 'no-store');
+    res.json(await stats({ days }));
+  } catch (err) { next(err); }
+});
+
+app.get('/api/admin/orders', requireAdmin, async (_req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json({ orders: await listOrders({ limit: 100 }) });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/orders/:id/anonymise', requireAdmin, async (req, res, next) => {
+  try {
+    await anonymiseOrder(str(req.params.id, 64));
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/purge', requireAdmin, async (_req, res, next) => {
+  try { res.json(await purge({})); } catch (err) { next(err); }
+});
+
+app.post('/api/admin/sync', requireAdmin, async (_req, res, next) => {
+  try {
     const previous = await getReleases().catch(() => ({ releases: [] }));
     const fresh = await fetchReleases();
     const releases = keepGenres(fresh, previous.releases ?? []);

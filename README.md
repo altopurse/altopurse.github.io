@@ -30,8 +30,27 @@ content. `assets/js/app.js` upgrades that markup in place when it can.
 | `assets/js/app.js` | Data loading, room tabs, checkout, mailing list |
 | `data/*.json` | Fallback catalogue, used when the API is unreachable |
 | `assets/art/`, `assets/img/` | Web derivatives. Originals stay off the repo |
-| `server/` | Express API — Mollie checkout, Firestore, Spotify sync |
+| `admin/` | Dashboard — visit stats, orders, erasure, Spotify sync |
+| `privacy.html` | Privacy notice. Keep it true if you change what is recorded |
+| `server/` | Express API — Mollie checkout, Firestore, Spotify sync, stats |
 | `docs/` | The original brief and the artist's wireframe |
+
+## Visit statistics
+
+No cookies, no `localStorage`, no fingerprinting, so no consent banner. IP
+addresses are never stored — a visitor is counted via a one-way hash of
+IP + user agent + **today's date** + a secret, so the same person tomorrow is an
+unrelated value and cannot be followed between days. Only daily totals survive.
+
+You can see what happens on the site, not who did it. Following individuals
+between visits would need a consent banner and considerably more paperwork.
+
+`Sec-GPC` and `Do Not Track` stop collection entirely, checked in the browser
+and again on the server.
+
+The admin lives at `/admin/`, behind `ADMIN_TOKEN`, held in `sessionStorage`
+for one tab. It is `noindex` and blocked in `robots.txt` — but note that is
+obscurity, not security. The token is the security.
 
 ## Turning things on
 
