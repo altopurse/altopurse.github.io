@@ -2,3 +2,5 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /thanks.html
+
+Sitemap: https://tumanic.com/sitemap.xml

@@ -711,6 +711,11 @@ a { color: inherit; }
   text-transform: uppercase;
 }
 .deck__link {
+  /* Standalone control, not a link inside a sentence, so it has to clear the
+     24px minimum target. Measured at 17px on a phone before this. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
   margin-left: auto;
   color: var(--accent-text);
   text-decoration: none;
