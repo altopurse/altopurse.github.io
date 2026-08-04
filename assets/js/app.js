@@ -45,7 +45,7 @@ function chrome() {
   const contact = $('#contact-link');
   if (!contact) return;
   if (CFG.contactEmail) {
-    contact.href = `mailto:${CFG.contactEmail}?subject=${encodeURIComponent('Enquiry via tumanicmae')}`;
+    contact.href = `mailto:${CFG.contactEmail}?subject=${encodeURIComponent('Enquiry via tumanic.com')}`;
   } else {
     // No address yet — send people somewhere real rather than a broken mailto.
     contact.href = '#newsletter';
@@ -234,8 +234,9 @@ function applyShop({ live }) {
     if (Number.isFinite(minor)) el.textContent = money.format(minor / 100);
   }
 
-  const count = $('[data-count="artworks"]');
-  if (count && state.artworks.length) count.textContent = String(state.artworks.length);
+  // The gateway counts are the artist's stated body of work, not the size of
+  // this catalogue — 15 originals exist, one is photographed and for sale. They
+  // are written in the HTML and deliberately not overwritten from here.
 
   const draft = $('#draft-note');
   if (draft) {
@@ -273,7 +274,6 @@ function applyShop({ live }) {
 }
 
 async function loadReleases() {
-  const count = $('[data-count="releases"]');
   let data = null;
 
   if (API) {
@@ -284,7 +284,6 @@ async function loadReleases() {
   }
 
   const releases = data.releases ?? [];
-  if (count && releases.length) count.textContent = String(releases.length);
 
   // Tag the static list with genres so the rooms can filter it.
   const rows = $$('#disco-list .track');
@@ -298,6 +297,76 @@ async function loadReleases() {
   if (status && untagged === releases.length && releases.length > 0) {
     status.textContent = 'Releases are not sorted into rooms yet, so every room is empty. Everything is listed below.';
   }
+}
+
+/* ── Image viewer ─────────────────────────────────────────── */
+
+/**
+ * The artwork is the reason anyone is on this page, and until now the images
+ * were 300px wide and could not be opened. Clicking any of them now shows it
+ * full size.
+ *
+ * The thumbnails become real buttons rather than click handlers on <img>, so
+ * they are reachable by Tab and announced as controls. The alt text does double
+ * duty as the caption, which keeps one description in one place.
+ */
+function viewer() {
+  const dialog = $('#viewer');
+  const img = $('#viewer-img');
+  const cap = $('#viewer-cap');
+  if (!dialog || !img) return;
+
+  let opener = null;
+
+  const open = (src, alt) => {
+    img.src = src;
+    img.alt = alt ?? '';
+    if (cap) cap.textContent = alt ?? '';
+    dialog.showModal();
+  };
+
+  for (const host of $$('[data-lightbox]')) {
+    for (const thumb of $$('img', host)) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'zoom';
+      // The full-size file, not the thumbnail: srcset picks a small source for
+      // a small box, and reusing that in the viewer would show a blurry image.
+      btn.dataset.full = thumb.dataset.full ?? thumb.currentSrc ?? thumb.src;
+      btn.setAttribute('aria-label', `Enlarge: ${thumb.alt || 'artwork'}`);
+      thumb.replaceWith(btn);
+      btn.append(thumb);
+      btn.addEventListener('click', () => {
+        opener = btn;
+        open(btn.dataset.full, thumb.alt);
+      });
+    }
+  }
+
+  const close = () => dialog.close();
+  $('#viewer-close')?.addEventListener('click', close);
+
+  // Escape explicitly: not every engine fires cancel, and preventDefault stops
+  // the two paths racing where the native one does work.
+  dialog.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    close();
+  });
+
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) close();
+  });
+
+  dialog.addEventListener('close', () => {
+    img.src = '';           // release the decoded image
+    const target = opener;
+    opener = null;
+    // Restore focus on the next frame. Calling focus() inside the close event
+    // races the browser's own focus handling and loses — measured, not
+    // guessed: focus stayed on the dialog's close button.
+    requestAnimationFrame(() => target?.focus());
+  });
 }
 
 /* ── Checkout ─────────────────────────────────────────────── */
@@ -344,10 +413,12 @@ function checkout() {
     close();
   });
 
-  // Return focus to whatever opened the dialog.
+  // Return focus to whatever opened the dialog, on the next frame — doing it
+  // inside the close event races the browser's focus handling and loses.
   dialog.addEventListener('close', () => {
-    openerEl?.focus();
+    const target = openerEl;
     openerEl = null;
+    requestAnimationFrame(() => target?.focus());
   });
 
   // Clicking the backdrop closes it.
@@ -495,6 +566,7 @@ chrome();
 topbar();
 platforms();
 rooms();
+viewer();
 checkout();
 newsletter();
 comments();

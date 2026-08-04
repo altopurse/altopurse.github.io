@@ -85,6 +85,12 @@
   </nav>
 </header>
 
+<!-- The artist's 369 column, fixed to the right edge and sitting behind
+     everything. Decorative, so it is hidden from assistive tech and from
+     print, and it stands down on narrow screens where there is no room to
+     spare. -->
+<div class="column369" aria-hidden="true"></div>
+
 <main>
 
 <!-- ══ GATEWAY ═══════════════════════════════════════════════ -->
@@ -98,19 +104,22 @@
   </div>
 
   <nav class="doors" aria-label="Choose a section">
+    <!-- These counts are the size of the body of work, given by the artist —
+         not the number of items listed below, which is a selection. app.js no
+         longer overwrites them from the catalogue for that reason. -->
     <a class="door door--music" href="#music">
       <span class="door__name">Music</span>
-      <span class="door__meta"><span data-count="releases">6</span> releases · weekly</span>
+      <span class="door__meta">66 releases · weekly</span>
       <span class="door__flood" aria-hidden="true"></span>
     </a>
 
     <span class="divider" aria-hidden="true">
-      <svg class="divider__em"><use href="#em-asterisk"/></svg>
+      <svg class="divider__em"><use href="#em-pentagram"/></svg>
     </span>
 
     <a class="door door--art" href="#art">
       <span class="door__name">Art</span>
-      <span class="door__meta"><span data-count="artworks">1</span> original · prints · merch</span>
+      <span class="door__meta">15 originals · prints · merch</span>
       <span class="door__flood" aria-hidden="true"></span>
     </a>
 
@@ -125,7 +134,7 @@
     </a>
   </nav>
 
-  <p class="gateway__url">www.tumanicmae</p>
+  <p class="gateway__url">www.tumanic.com</p>
 </section>
 
 <!-- ══ MUSIC ═════════════════════════════════════════════════ -->
@@ -229,7 +238,7 @@
     </div>
 
     <!-- Discography ------------------------------------------ -->
-    <h3 class="rule" id="disco-h"><span>Discography</span></h3>
+    <h3 class="rule" id="disco-h"><span>Recently uploaded tracks</span></h3>
 
     <div class="disco" id="panel-releases" role="tabpanel" aria-labelledby="tab-all" tabindex="0">
       <p class="disco__status" id="disco-status" role="status" aria-live="polite"></p>
@@ -243,28 +252,30 @@
             <span class="track__year">2026</span>
           </div>
         </li>
+        <!-- Years are left blank where the artist has not confirmed one. An
+             empty cell is honest; a guessed year is not. -->
         <li class="track" data-genre="">
           <div class="track__row">
             <span class="track__no" aria-hidden="true">02</span>
-            <span class="track__title">Tu Witchy</span>
+            <span class="track__title">I Wanna Live Tonight</span>
             <span class="track__tags"></span>
-            <span class="track__year">2026</span>
+            <span class="track__year"></span>
           </div>
         </li>
         <li class="track" data-genre="">
           <div class="track__row">
             <span class="track__no" aria-hidden="true">03</span>
-            <span class="track__title">trap$hitty</span>
+            <span class="track__title">Toxicity Optimistic</span>
             <span class="track__tags"></span>
-            <span class="track__year">2026</span>
+            <span class="track__year"></span>
           </div>
         </li>
         <li class="track" data-genre="">
           <div class="track__row">
             <span class="track__no" aria-hidden="true">04</span>
-            <span class="track__title">Smack Me Up</span>
+            <span class="track__title">Durr In Music</span>
             <span class="track__tags"></span>
-            <span class="track__year">2026</span>
+            <span class="track__year"></span>
           </div>
         </li>
         <li class="track" data-genre="">
@@ -278,9 +289,9 @@
         <li class="track" data-genre="">
           <div class="track__row">
             <span class="track__no" aria-hidden="true">06</span>
-            <span class="track__title">Glorifying Addictions</span>
+            <span class="track__title">2009 Dubstep</span>
             <span class="track__tags"></span>
-            <span class="track__year">2022</span>
+            <span class="track__year"></span>
           </div>
         </li>
       </ol>
@@ -349,17 +360,20 @@
       <article class="feature" data-artwork="tessellation-01">
 
         <div class="feature__stage">
-          <figure class="feature__hero">
+          <figure class="feature__hero" data-lightbox>
             <img src="assets/art/canvas-full.webp"
                  srcset="assets/art/canvas-full-320.webp 320w, assets/art/canvas-full-640.webp 640w, assets/art/canvas-full.webp 1000w"
                  sizes="(min-width: 1180px) 36vw, (min-width: 900px) 44vw, 92vw"
                  width="1000" height="1000" decoding="async"
+                 data-full="assets/art/canvas-full.jpg"
                  alt="A square canvas covered edge to edge in ruled, flat-painted triangles — red, cobalt, yellow, green, magenta, purple and orange — repeating outward as a kaleidoscope, with a black-and-white third eye in the bottom right corner.">
             <figcaption class="feature__flag">One of one</figcaption>
           </figure>
 
-          <ul class="strip" aria-label="Detail views">
-            <li><img src="assets/art/canvas-insitu-400.webp" width="400" height="450" loading="lazy" decoding="async" alt="The canvas hanging on a white studio wall, showing its scale against the wall panel."></li>
+          <!-- Buttons, not bare images: opening a viewer is an action, and this
+               way it is reachable by keyboard and announced properly. -->
+          <ul class="strip" aria-label="Detail views" data-lightbox>
+            <li><img src="assets/art/canvas-insitu-400.webp" data-full="assets/art/canvas-insitu.webp" width="400" height="450" loading="lazy" decoding="async" alt="The canvas hanging on a white studio wall, showing its scale against the wall panel."></li>
             <li><img src="assets/art/detail-fan.webp" width="478" height="478" loading="lazy" decoding="async" alt="Close detail: a fan of cobalt and pale blue triangles opening into yellow and green."></li>
             <li><img src="assets/art/detail-field.webp" width="425" height="425" loading="lazy" decoding="async" alt="Close detail: the tessellation repeating, with smaller triangles nested inside larger ones."></li>
             <li><img src="assets/art/detail-third-eye.webp" width="400" height="400" loading="lazy" decoding="async" alt="Close detail: the third eye in the bottom right corner, worked in black and white — the only part of the canvas without colour."></li>
@@ -572,7 +586,10 @@
         Want a piece at a different size, artwork for a release, or a booking?
         Write to the studio and you'll get an answer in a couple of days.
       </p>
-      <a class="btn btn--ghost" id="contact-link" href="#">Email the studio</a>
+      <!-- Written out so it works with no JS. app.js keeps it in step with
+           config.js if the address ever changes. -->
+      <a class="btn btn--ghost" id="contact-link"
+         href="mailto:tumanicmae@gmail.com?subject=Enquiry%20via%20tumanic.com">Email the studio</a>
     </div>
   </div>
 </section>
@@ -588,6 +605,13 @@
     <li><a href="https://youtube.com/@tumanic_music" target="_blank" rel="noopener">YouTube ↗</a></li>
   </ul>
 </footer>
+
+<!-- ══ IMAGE VIEWER ══════════════════════════════════════════ -->
+<dialog class="viewer" id="viewer" aria-label="Artwork, enlarged">
+  <button class="viewer__close" type="button" id="viewer-close" aria-label="Close image">✕</button>
+  <img class="viewer__img" id="viewer-img" src="" alt="">
+  <p class="viewer__cap" id="viewer-cap"></p>
+</dialog>
 
 <!-- ══ CHECKOUT ══════════════════════════════════════════════ -->
 <dialog class="sheet" id="buy-dialog" aria-labelledby="buy-title">

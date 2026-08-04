@@ -14,7 +14,8 @@ import {
   initDb, usingFirestore,
   getArtworks, getMerch, getReleases, saveReleases,
   createOrder, updateOrder, getOrder, settleOrder,
-  listOrders, anonymiseOrder
+  listOrders, anonymiseOrder,
+  createReport, listReports, updateReport, deleteReport
 } from './lib/db.js';
 import { lookupSku, toMollieAmount } from './lib/catalogue.js';
 import { createPayment, getPayment } from './lib/mollie.js';
@@ -305,6 +306,65 @@ app.post('/api/admin/orders/:id/anonymise', requireAdmin, async (req, res, next)
 
 app.post('/api/admin/purge', requireAdmin, async (_req, res, next) => {
   try { res.json(await purge({})); } catch (err) { next(err); }
+});
+
+/* ── Reports: bugs and feature requests ───────────────────── */
+
+// A screenshot arrives as a data URL, so this route alone needs a body limit
+// far above the 16kb the rest of the API uses. Mounted here rather than
+// globally, so nothing else gains a 2MB attack surface.
+const bigJson = express.json({ limit: '2mb' });
+
+const MAX_SHOT = 1_200_000;   // Firestore caps a document at 1MB; leave headroom
+
+app.post('/api/admin/reports', requireAdmin, bigJson, limit(30, 60_000), async (req, res, next) => {
+  try {
+    const body = str(req.body?.body, 4000);
+    const kind = ['bug', 'feature'].includes(req.body?.kind) ? req.body.kind : 'bug';
+    const from = str(req.body?.from, 60);
+    const page = str(req.body?.page, 300);
+    const shot = typeof req.body?.shot === 'string' ? req.body.shot : '';
+
+    if (!body) return res.status(400).json({ error: 'Say what happened before sending it.' });
+
+    // Only ever accept an image data URL. Anything else is either a mistake or
+    // an attempt to store something that will later be served back to a browser.
+    if (shot && !/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(shot)) {
+      return res.status(400).json({ error: 'That attachment is not an image.' });
+    }
+    if (shot.length > MAX_SHOT) {
+      return res.status(413).json({ error: 'That screenshot is too large even after resizing. Crop it and try again.' });
+    }
+
+    const id = await createReport({
+      kind, body, from, page, shot: shot || null,
+      status: 'open',
+      createdAt: new Date().toISOString()
+    });
+    res.json({ ok: true, id });
+  } catch (err) { next(err); }
+});
+
+app.get('/api/admin/reports', requireAdmin, async (_req, res, next) => {
+  try {
+    res.set('Cache-Control', 'no-store');
+    res.json({ reports: await listReports({ limit: 50 }) });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/reports/:id/status', requireAdmin, bigJson, async (req, res, next) => {
+  try {
+    const status = ['open', 'done'].includes(req.body?.status) ? req.body.status : 'open';
+    await updateReport(str(req.params.id, 64), { status });
+    res.json({ ok: true });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/reports/:id/delete', requireAdmin, async (req, res, next) => {
+  try {
+    await deleteReport(str(req.params.id, 64));
+    res.json({ ok: true });
+  } catch (err) { next(err); }
 });
 
 app.post('/api/admin/sync', requireAdmin, async (_req, res, next) => {

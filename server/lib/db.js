@@ -101,6 +101,39 @@ export async function listOrders({ limit = 50 } = {}) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
+/* ── Reports: bugs and feature requests from the team ─────── */
+
+/**
+ * A screenshot is stored as a data URL on the document itself rather than in
+ * Firebase Storage. Storage would mean another product to configure, another
+ * set of rules to get wrong, and signed URLs to manage — for a handful of
+ * screenshots between two people. A Firestore document caps at 1 MB, so the
+ * browser resizes and re-encodes before sending, and the API refuses anything
+ * still too big rather than letting Firestore reject it with a worse message.
+ */
+export async function createReport(report) {
+  if (!usingFirestore) throw new Error('Cannot save reports without Firestore.');
+  const ref = await firestore.collection('reports').add(report);
+  return ref.id;
+}
+
+export async function listReports({ limit = 50 } = {}) {
+  if (!usingFirestore) return [];
+  const snap = await firestore.collection('reports')
+    .orderBy('createdAt', 'desc').limit(limit).get();
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+export async function updateReport(id, patch) {
+  if (!usingFirestore) throw new Error('Cannot update reports without Firestore.');
+  await firestore.collection('reports').doc(id).set(patch, { merge: true });
+}
+
+export async function deleteReport(id) {
+  if (!usingFirestore) throw new Error('Cannot delete reports without Firestore.');
+  await firestore.collection('reports').doc(id).delete();
+}
+
 /**
  * Erasure request handling. UK tax rules mean a sale record has to survive
  * for six years, so the transaction stays and only the person is removed.

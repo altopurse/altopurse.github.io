@@ -79,6 +79,29 @@
   .msg[data-state='error'] { border-color: #FF7A6E; background: rgb(255 122 110 / 0.1); }
   .msg:empty { display: none; }
 
+  .rep { padding: 1rem; display: grid; gap: 0.9rem; }
+  .rep__row { display: grid; gap: 0.9rem; grid-template-columns: 1fr; }
+  @media (min-width: 620px) { .rep__row { grid-template-columns: 1fr 1fr; } }
+  .rep textarea, .rep input[type=text], .rep select {
+    width: 100%; min-height: 2.75rem; padding: 0.6rem 0.75rem;
+    border: 1px solid var(--line-2); border-radius: var(--radius);
+    background: var(--bg); color: var(--text); font: inherit;
+  }
+  .rep textarea { min-height: 6rem; resize: vertical; }
+  .rep label { display: block; margin-bottom: 0.35rem; font-family: var(--mono);
+               font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .rep .hint { margin: 0.4rem 0 0; font-size: 0.8rem; color: var(--muted); }
+  .rep :focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  #rep-preview img { max-width: min(100%, 320px); height: auto; display: block;
+                     border: 1px solid var(--line-2); border-radius: var(--radius); margin-bottom: 0.5rem; }
+  .shot-link { padding: 0; border: 0; background: none; cursor: zoom-in; display: block; }
+  .shot-link[data-big="true"] { cursor: zoom-out; }
+  .shot-link img { max-width: 90px; height: auto; border: 1px solid var(--line); border-radius: 4px; display: block; transition: max-width 0.2s ease; }
+  .shot-link:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  .rep-body { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 46ch; }
+  tr[data-done="true"] { opacity: 0.5; }
+  tr[data-done="true"] .rep-body { text-decoration: line-through; }
+
   .tools { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
   .privacy-note { margin-top: 2.5rem; max-width: 62ch; font-size: 0.85rem; color: var(--muted); }
   .privacy-note a { color: var(--yellow); }
@@ -157,6 +180,51 @@
 
     <section class="panel"><h2>Languages</h2>
       <table><thead><tr><th scope="col">Language</th><th class="n" scope="col">Views</th></tr></thead><tbody id="tb-langs"></tbody></table>
+    </section>
+
+    <section class="panel panel--wide"><h2>Report a bug or ask for a feature</h2>
+      <form id="rep-form" class="rep" novalidate>
+        <div class="rep__row">
+          <div class="field">
+            <label for="rep-kind">Type</label>
+            <select id="rep-kind">
+              <option value="bug">Something is broken</option>
+              <option value="feature">Idea or request</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="rep-from">Your name</label>
+            <input id="rep-from" type="text" autocomplete="nickname" maxlength="60" placeholder="So we know who asked">
+          </div>
+        </div>
+        <div class="field">
+          <label for="rep-body">What is it?</label>
+          <textarea id="rep-body" rows="4" maxlength="4000" required
+            placeholder="What you expected, what happened instead, and where."></textarea>
+        </div>
+        <div class="field">
+          <label for="rep-shot">Screenshot</label>
+          <input id="rep-shot" type="file" accept="image/*">
+          <p class="hint" id="rep-hint">Or press Ctrl+V anywhere on this page to paste one straight from the clipboard. Large images are shrunk before sending.</p>
+        </div>
+        <div id="rep-preview" hidden>
+          <img id="rep-thumb" alt="Screenshot to be attached">
+          <button class="linkish" type="button" id="rep-drop">Remove screenshot</button>
+        </div>
+        <p class="msg" id="rep-msg" role="status" aria-live="polite"></p>
+        <button class="btn btn--primary" type="submit" id="rep-send">Send it</button>
+      </form>
+    </section>
+
+    <section class="panel panel--wide"><h2>Reports</h2>
+      <table>
+        <caption>Newest first. Mark one done when it is dealt with, or delete it entirely.</caption>
+        <thead><tr>
+          <th scope="col">When</th><th scope="col">Type</th><th scope="col">From</th>
+          <th scope="col">What</th><th scope="col">Shot</th><th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr></thead>
+        <tbody id="tb-reports"></tbody>
+      </table>
     </section>
 
     <section class="panel panel--wide"><h2>Orders</h2>
@@ -284,6 +352,8 @@
       fillPairs($('#tb-devices'), s.devices);
       fillPairs($('#tb-langs'), s.languages);
 
+      loadReports();
+
       $('#tb-orders').innerHTML = (o.orders ?? []).length
         ? o.orders.map((x) => {
             const erased = x.buyer?.name === '[erased]';
@@ -331,6 +401,167 @@
     try {
       await api(`/api/admin/orders/${encodeURIComponent(btn.dataset.erase)}/anonymise`, { method: 'POST' });
       load();
+    } catch (err) { alert(err.message); }
+  });
+
+  /* ── Reports ─────────────────────────────────────────────── */
+
+  let pendingShot = null;
+
+  /**
+   * Shrink and re-encode before sending. A phone screenshot is often 3-6 MB,
+   * and the whole report has to fit inside one Firestore document (1 MB), so
+   * this is not an optimisation — without it nothing sends at all.
+   * Steps down the quality until it fits rather than guessing once.
+   */
+  async function shrink(file) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, 1400 / Math.max(bitmap.width, bitmap.height));
+    const w = Math.round(bitmap.width * scale);
+    const h = Math.round(bitmap.height * scale);
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+    bitmap.close?.();
+
+    for (const q of [0.75, 0.6, 0.45, 0.3]) {
+      const url = canvas.toDataURL('image/jpeg', q);
+      if (url.length <= 1_100_000) return url;
+    }
+    return null;   // still too big: a very large, very detailed screenshot
+  }
+
+  async function attach(file) {
+    const msg = $('#rep-msg');
+    if (!file || !file.type.startsWith('image/')) return;
+    msg.textContent = 'Processing the image…';
+    msg.dataset.state = '';
+    try {
+      const url = await shrink(file);
+      if (!url) {
+        msg.textContent = 'That image is too big even after shrinking. Crop it and try again.';
+        msg.dataset.state = 'error';
+        return;
+      }
+      pendingShot = url;
+      $('#rep-thumb').src = url;
+      $('#rep-preview').hidden = false;
+      msg.textContent = '';
+    } catch {
+      msg.textContent = 'That file could not be read as an image.';
+      msg.dataset.state = 'error';
+    }
+  }
+
+  $('#rep-shot').addEventListener('change', (e) => attach(e.target.files?.[0]));
+
+  $('#rep-drop').addEventListener('click', () => {
+    pendingShot = null;
+    $('#rep-preview').hidden = true;
+    $('#rep-shot').value = '';
+    $('#rep-msg').textContent = '';
+  });
+
+  // Paste straight from the clipboard — how a screenshot usually arrives.
+  document.addEventListener('paste', (e) => {
+    const item = [...(e.clipboardData?.items ?? [])].find((i) => i.type.startsWith('image/'));
+    if (!item) return;
+    e.preventDefault();
+    attach(item.getAsFile());
+  });
+
+  $('#rep-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const msg = $('#rep-msg');
+    const send = $('#rep-send');
+    const body = $('#rep-body').value.trim();
+
+    if (!body) {
+      msg.textContent = 'Say what happened before sending it.';
+      msg.dataset.state = 'error';
+      $('#rep-body').focus();
+      return;
+    }
+
+    send.disabled = true;
+    msg.dataset.state = '';
+    msg.textContent = 'Sending…';
+
+    try {
+      await api('/api/admin/reports', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          kind: $('#rep-kind').value,
+          from: $('#rep-from').value.trim(),
+          body,
+          page: location.href,
+          shot: pendingShot ?? ''
+        })
+      });
+      msg.dataset.state = '';
+      msg.textContent = 'Sent. It shows up in the list below.';
+      $('#rep-body').value = '';
+      $('#rep-drop').click();
+      loadReports();
+    } catch (err) {
+      msg.dataset.state = 'error';
+      msg.textContent = err.message;
+    } finally {
+      send.disabled = false;
+    }
+  });
+
+  async function loadReports() {
+    const tb = $('#tb-reports');
+    try {
+      const { reports } = await api('/api/admin/reports');
+      tb.innerHTML = reports.length
+        ? reports.map((r) => `<tr data-done="${r.status === 'done'}">
+            <td>${esc(r.createdAt ? dt.format(new Date(r.createdAt)) : '—')}</td>
+            <td>${r.kind === 'feature' ? 'Request' : 'Bug'}</td>
+            <td>${esc(r.from || '—')}</td>
+            <td class="rep-body">${esc(r.body)}</td>
+            <td>${r.shot ? `<button class="shot-link" type="button" data-zoom aria-label="Show this screenshot full size"><img src="${esc(r.shot)}" alt="Screenshot attached to this report"></button>` : '—'}</td>
+            <td>
+              <button class="linkish" type="button" data-done-id="${esc(r.id)}" data-to="${r.status === 'done' ? 'open' : 'done'}">${r.status === 'done' ? 'Reopen' : 'Done'}</button>
+              <button class="linkish" type="button" data-del-id="${esc(r.id)}">Delete</button>
+            </td>
+          </tr>`).join('')
+        : '<tr><td colspan="6" style="color:var(--muted)">Nothing reported yet.</td></tr>';
+    } catch (err) {
+      tb.innerHTML = `<tr><td colspan="6" style="color:var(--muted)">${esc(err.message)}</td></tr>`;
+    }
+  }
+
+  $('#tb-reports').addEventListener('click', async (e) => {
+    // Browsers block top-level navigation to a data: URL, so the screenshot
+    // cannot simply be a link — it expands in place instead.
+    const zoom = e.target.closest('[data-zoom]');
+    if (zoom) {
+      const big = zoom.dataset.big === 'true';
+      zoom.dataset.big = String(!big);
+      zoom.querySelector('img').style.maxWidth = big ? '90px' : 'min(70vw, 700px)';
+      zoom.setAttribute('aria-label', big ? 'Show this screenshot full size' : 'Shrink this screenshot');
+      return;
+    }
+
+    const done = e.target.closest('[data-done-id]');
+    const del = e.target.closest('[data-del-id]');
+    try {
+      if (done) {
+        await api(`/api/admin/reports/${encodeURIComponent(done.dataset.doneId)}/status`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ status: done.dataset.to })
+        });
+        loadReports();
+      } else if (del) {
+        if (!confirm('Delete this report and its screenshot for good? This cannot be undone.')) return;
+        await api(`/api/admin/reports/${encodeURIComponent(del.dataset.delId)}/delete`, { method: 'POST' });
+        loadReports();
+      }
     } catch (err) { alert(err.message); }
   });
 

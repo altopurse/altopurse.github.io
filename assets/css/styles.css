@@ -349,6 +349,38 @@ a { color: inherit; }
 .door--art    { --accent: var(--red);    --on-accent: #fff; }
 .door--events { --accent: var(--purple); --on-accent: #fff; }
 
+/* ── The 369 column ──────────────────────────────────────────
+   Fixed to the right edge, riding above the section backgrounds so the page
+   scrolls past it. z-index 20 puts it over those opaque backgrounds but under
+   the top bar (40) and the skip link (90) — behind it and it is invisible,
+   which is what happened first time.
+
+   It only claims the right margin, outside the content column, and stands down
+   below 1100px where that margin disappears. pointer-events: none so it never
+   swallows a click near the scrollbar. */
+.column369 {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: clamp(40px, 4.5vw, 84px);
+  height: 100svh;
+  z-index: 20;
+  pointer-events: none;
+  background: url('../art/369-column.jpg') right center / cover no-repeat;
+  /* No blend mode: the column is a white ground with red marks, and `screen`
+     blew the white out into a bright bar. Plain opacity keeps it a dimmed
+     photograph, which is what reads as "behind" on a near-black page. */
+  opacity: 0.34;
+  /* One mask, not two — mask-composite support is patchy and two layers
+     stacked without it defaults to add, which cancels the fade entirely. */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+          mask-image: linear-gradient(to bottom, transparent, #000 14%, #000 86%, transparent);
+}
+/* Below this the content reaches the right edge and the column would sit on
+   top of it. */
+@media (max-width: 1100px) { .column369 { display: none; } }
+@media print { .column369 { display: none; } }
+
 .door__flood {
   position: absolute;
   inset: 0;
@@ -1266,6 +1298,71 @@ a { color: inherit; }
 }
 
 /* ══ REDUCED MOTION ═══════════════════════════════════════ */
+
+/* ── Image viewer ────────────────────────────────────────────
+   The thumbnails are wrapped in a button so they can be reached by keyboard.
+   The button has to be invisible as a control while staying obvious as a
+   target, hence the reset plus a zoom cursor and a lift on hover. */
+.zoom {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+.zoom img { display: block; width: 100%; height: auto; }
+.zoom:hover { transform: scale(1.03); }
+.zoom:focus-visible {
+  outline: 2px solid var(--yellow);
+  outline-offset: 3px;
+}
+.feature__hero .zoom { width: 100%; }
+
+.viewer {
+  width: min(94vw, 1100px);
+  max-height: 92svh;
+  padding: 0;
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+.viewer::backdrop { background: rgb(0 0 0 / 0.85); }
+.viewer__img {
+  display: block;
+  width: 100%;
+  max-height: 80svh;
+  object-fit: contain;
+  background: #000;
+}
+.viewer__cap {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 72ch;
+}
+.viewer__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  min-width: 2.5rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--line-2);
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.viewer__close:hover { background: rgb(0 0 0 / 0.85); }
+.viewer__close:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
