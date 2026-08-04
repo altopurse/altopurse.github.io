@@ -21,6 +21,7 @@ import { lookupSku, toMollieAmount } from './lib/catalogue.js';
 import { createPayment, getPayment } from './lib/mollie.js';
 import { fetchReleases, keepGenres } from './lib/spotify.js';
 import { record, stats, purge } from './lib/analytics.js';
+import { seedFromRepo } from './lib/seed.js';
 
 try { process.loadEnvFile('./.env'); } catch { /* Render supplies real env vars */ }
 
@@ -306,6 +307,16 @@ app.post('/api/admin/orders/:id/anonymise', requireAdmin, async (req, res, next)
 
 app.post('/api/admin/purge', requireAdmin, async (_req, res, next) => {
   try { res.json(await purge({})); } catch (err) { next(err); }
+});
+
+app.post('/api/admin/seed', requireAdmin, async (_req, res, next) => {
+  try {
+    res.json({ ok: true, ...(await seedFromRepo()) });
+  } catch (err) {
+    // This one is worth surfacing: "Firestore is not connected" tells the
+    // artist exactly what to fix, where the generic 500 would not.
+    res.status(503).json({ error: err.message });
+  }
 });
 
 /* ── Reports: bugs and feature requests ───────────────────── */

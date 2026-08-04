@@ -240,6 +240,7 @@
   </div>
 
   <div class="tools">
+    <button class="btn btn--ghost" type="button" id="seed">Stock the shop</button>
     <button class="btn btn--ghost" type="button" id="sync">Sync releases from Spotify</button>
     <button class="btn btn--ghost" type="button" id="purge">Run retention purge</button>
   </div>
@@ -563,6 +564,16 @@
         loadReports();
       }
     } catch (err) { alert(err.message); }
+  });
+
+  $('#seed').addEventListener('click', async () => {
+    const msg = $('#msg');
+    msg.textContent = 'Copying the catalogue into the database…';
+    msg.dataset.state = '';
+    try {
+      const r = await api('/api/admin/seed', { method: 'POST' });
+      msg.textContent = `Stocked ${r.total} records — ${r.artworks} artwork, ${r.merch} merch. Checkout opens on the next page load.`;
+    } catch (err) { msg.textContent = err.message; msg.dataset.state = 'error'; }
   });
 
   $('#sync').addEventListener('click', async () => {

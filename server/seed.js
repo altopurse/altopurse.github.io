@@ -1,49 +1,26 @@
 /* ============================================================
-   One-off: push the repo's data/*.json into Firestore.
+   One-off: push the repo's data/*.json into Firestore from a terminal.
 
-   Run once after the service account is configured:
      npm run seed
 
-   Safe to re-run. It merges, so anything already sold or edited in
-   Firestore keeps its value rather than being reset to the JSON.
+   Needs GOOGLE_APPLICATION_CREDENTIALS_JSON in server/.env. If you would
+   rather not put a private key on a laptop, use the "Stock the shop" button on
+   /admin instead — it runs the same code on the server, which already has the
+   credentials.
    ============================================================ */
 
-import { readFile } from 'node:fs/promises';
-import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
-import { initDb, usingFirestore, db } from './lib/db.js';
+import { initDb, usingFirestore } from './lib/db.js';
+import { seedFromRepo } from './lib/seed.js';
 
 try { process.loadEnvFile('./.env'); } catch { /* env may come from the shell */ }
 
-const dataDir = join(dirname(fileURLToPath(import.meta.url)), '..', 'data');
-const read = async (f) => JSON.parse(await readFile(join(dataDir, f), 'utf8'));
-
 await initDb();
 if (!usingFirestore) {
-  console.error('No Firestore credentials — set GOOGLE_APPLICATION_CREDENTIALS_JSON first.');
+  console.error('No Firestore credentials — set GOOGLE_APPLICATION_CREDENTIALS_JSON first,');
+  console.error('or use the "Stock the shop" button on /admin.');
   process.exit(1);
 }
 
-const store = db();
-let written = 0;
-
-const artworks = await read('artworks.json');
-for (const art of artworks.artworks ?? []) {
-  const { id, ...rest } = art;
-  await store.collection('artworks').doc(id).set(rest, { merge: true });
-  written += 1;
-}
-
-const merch = await read('merch.json');
-for (const product of merch.products ?? []) {
-  const { id, ...rest } = product;
-  await store.collection('merch').doc(id).set(rest, { merge: true });
-  written += 1;
-}
-
-const releases = await read('releases.json');
-await store.collection('meta').doc('releases').set(releases, { merge: true });
-written += 1;
-
-console.log(`Seeded ${written} documents.`);
+const counts = await seedFromRepo();
+console.log(`Seeded ${counts.total} documents — ${counts.artworks} artworks, ${counts.merch} merch, ${counts.meta} meta.`);
 process.exit(0);
