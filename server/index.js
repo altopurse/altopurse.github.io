@@ -129,6 +129,13 @@ app.post('/api/orders', limit(10, 60_000), async (req, res, next) => {
     const item = await lookupSku(sku);
     if (!item) return res.status(404).json({ error: 'That item is not for sale.' });
     if (item.soldOut) return res.status(409).json({ error: 'That one has already sold.' });
+    if (item.draft) {
+      // Refused here rather than only in the browser, because the browser can
+      // be bypassed and this is the last gate before a real card is charged.
+      return res.status(409).json({
+        error: 'The price for this piece is not final yet, so it cannot be sold. Please check back shortly.'
+      });
+    }
 
     const amount = toMollieAmount(item.priceMinor, CURRENCY);
 

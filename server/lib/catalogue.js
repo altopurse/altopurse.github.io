@@ -28,6 +28,11 @@ export async function lookupSku(sku) {
         unique: true,
         artworkId: art.id,
         priceMinor: art.original.priceMinor,
+        // A draft price is a placeholder the artist has not signed off. It is
+        // reported here so the order route can refuse it — charging someone
+        // £850 against a number nobody confirmed is the worst failure this
+        // shop could have.
+        draft: art.original.draftPrice === true,
         description: `${name} — original, one of one`
       };
     }
@@ -41,6 +46,7 @@ export async function lookupSku(sku) {
         unique: false,
         artworkId: art.id,
         priceMinor: print.priceMinor,
+        draft: print.draftPrice === true,
         description: `${name} — ${print.size} signed print`
       };
     }
@@ -63,6 +69,7 @@ export async function lookupSku(sku) {
       unique: false,
       artworkId: art?.id ?? null,
       priceMinor: product.priceMinor,
+      draft: product.draftPrice === true,
       description: `${product.name} (${size}) — ${name}`
     };
   }

@@ -188,6 +188,13 @@ async function loadShop() {
 
       if (!canCheckout && status) {
         status.textContent = 'The shop is not open yet. Everything here is real, but you cannot check out.';
+      } else if (canCheckout && status) {
+        const allDraft = state.artworks.every(
+          (a) => a.original?.draftPrice && (a.prints ?? []).every((p) => p.draftPrice)
+        );
+        status.textContent = allDraft
+          ? 'Prices are still being finalised, so nothing can be bought just yet. Join the list below and you will know first.'
+          : '';
       }
       return;
     } catch (err) {
@@ -247,9 +254,17 @@ function applyShop({ live }) {
   }
 
   const sold = new Set();
+  // A draft price is a placeholder nobody has signed off. The server refuses
+  // these too — this only saves the visitor filling in a delivery address
+  // before being told no.
+  const draft = new Set();
   for (const a of state.artworks) {
     if (a.original && a.original.available === false) sold.add(a.original.sku);
-    for (const p of a.prints ?? []) if (p.available === false) sold.add(p.sku);
+    if (a.original?.draftPrice) draft.add(a.original.sku);
+    for (const p of a.prints ?? []) {
+      if (p.available === false) sold.add(p.sku);
+      if (p.draftPrice) draft.add(p.sku);
+    }
   }
 
   for (const btn of $$('.btn--buy')) {
@@ -258,6 +273,12 @@ function applyShop({ live }) {
       btn.disabled = true;
       btn.textContent = 'Sold';
       if (row) row.dataset.sold = 'true';
+      continue;
+    }
+    if (draft.has(btn.dataset.sku)) {
+      btn.disabled = true;
+      btn.textContent = 'Price to confirm';
+      btn.setAttribute('aria-describedby', 'draft-note');
       continue;
     }
     if (live) {
