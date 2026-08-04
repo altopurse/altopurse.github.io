@@ -257,13 +257,13 @@ function applyShop({ live }) {
   // A draft price is a placeholder nobody has signed off. The server refuses
   // these too — this only saves the visitor filling in a delivery address
   // before being told no.
-  const draft = new Set();
+  const draftSkus = new Set();
   for (const a of state.artworks) {
     if (a.original && a.original.available === false) sold.add(a.original.sku);
-    if (a.original?.draftPrice) draft.add(a.original.sku);
+    if (a.original?.draftPrice) draftSkus.add(a.original.sku);
     for (const p of a.prints ?? []) {
       if (p.available === false) sold.add(p.sku);
-      if (p.draftPrice) draft.add(p.sku);
+      if (p.draftPrice) draftSkus.add(p.sku);
     }
   }
 
@@ -275,7 +275,7 @@ function applyShop({ live }) {
       if (row) row.dataset.sold = 'true';
       continue;
     }
-    if (draft.has(btn.dataset.sku)) {
+    if (draftSkus.has(btn.dataset.sku)) {
       btn.disabled = true;
       btn.textContent = 'Price to confirm';
       btn.setAttribute('aria-describedby', 'draft-note');
